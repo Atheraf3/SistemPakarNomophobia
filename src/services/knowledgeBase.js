@@ -1,8 +1,3 @@
-/**
- * Contoh Knowledge Base Sistem Pakar
- * Ganti dengan data penyakit/kondisi sesuai domain skripsi Anda
- */
-
 export const symptoms = [
   { id: "G001", label: "Demam tinggi (>38°C)" },
   { id: "G002", label: "Sakit kepala" },
