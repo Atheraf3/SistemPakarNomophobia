@@ -11,8 +11,8 @@ export default function ManageKnowledgeBasePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Kelola Basis Pengetahuan (Knowledge Base)</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Basis Pengetahuan (Knowledge Base)</h2>
       </div>
       
       <Card>
@@ -24,7 +24,8 @@ export default function ManageKnowledgeBasePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto w-full pb-4">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Kode Gejala</TableHead>
@@ -47,7 +48,8 @@ export default function ManageKnowledgeBasePage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -23,7 +23,7 @@ function Navbar() {
       <div className="container mx-auto flex h-14 items-center px-4 justify-between">
         <div className="flex items-center">
           <Link to="/" className="mr-6 flex items-center font-bold text-lg">
-            Sistem Pakar
+            <img src="https://ik.imagekit.io/2xthk8ud4/TA/Logo.png" alt="Sistem Pakar Logo" className="h-16 w-auto" />
           </Link>
           <nav className="flex gap-6 text-sm font-medium">
             {navItems

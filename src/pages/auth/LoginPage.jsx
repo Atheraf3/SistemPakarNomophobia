@@ -32,11 +32,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
+      <Card className="w-full max-w-md p-2 md:p-4">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-xl md:text-2xl font-bold text-center">Login</CardTitle>
+          <CardDescription className="text-sm md:text-base text-center">
             Pilih kredensial di bawah ini untuk menguji hak akses (password bebas)
           </CardDescription>
         </CardHeader>

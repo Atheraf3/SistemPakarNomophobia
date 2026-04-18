@@ -10,8 +10,8 @@ export default function ManageUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Kelola Data User</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Data User</h2>
       </div>
       
       <Card>
@@ -22,7 +22,8 @@ export default function ManageUsersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto w-full pb-4">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nama</TableHead>
@@ -55,7 +56,8 @@ export default function ManageUsersPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

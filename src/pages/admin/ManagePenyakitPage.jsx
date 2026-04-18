@@ -11,9 +11,9 @@ export default function ManagePenyakitPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Kelola Tingkat Nomophobia</h2>
-        <Button>Tambah Tingkat</Button>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Tingkat Nomophobia</h2>
+        <Button className="w-full md:w-auto">Tambah Tingkat</Button>
       </div>
       
       <Card>
@@ -24,7 +24,8 @@ export default function ManagePenyakitPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto w-full pb-4">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
@@ -46,7 +47,8 @@ export default function ManagePenyakitPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,7 +1,7 @@
 /**
  * Diagnosis Feature - Komponen-komponen terkait fitur diagnosis
  *
- * Struktur yang disarankan:
+ * Struktur:
  *   DiagnosisForm.jsx    — Form pemilihan gejala
  *   DiagnosisResult.jsx  — Tampilan hasil diagnosis
  *   SymptomCard.jsx      — Card untuk satu gejala

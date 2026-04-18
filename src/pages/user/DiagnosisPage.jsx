@@ -27,10 +27,10 @@ export default function DiagnosisPage() {
   const progress = ((currentStep + 1) / questions.length) * 100;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 px-4 md:px-0">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Kuesioner Diagnosis</h2>
-        <p className="text-slate-500">Pilih tingkat keyakinan Anda terhadap pernyataan berikut.</p>
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kuesioner Diagnosis</h2>
+        <p className="text-sm md:text-base text-slate-500">Pilih tingkat keyakinan Anda terhadap pernyataan berikut.</p>
         <Progress value={progress} className="h-2 mt-4" />
       </div>
 
@@ -69,15 +69,16 @@ export default function DiagnosisPage() {
             </div>
           </RadioGroup>
         </CardContent>
-        <CardFooter className="flex justify-between items-center border-t p-4">
+        <CardFooter className="flex flex-col-reverse md:flex-row justify-between items-stretch md:items-center gap-3 border-t p-4 md:p-6 mt-2">
           <Button 
             variant="outline" 
+            className="w-full md:w-auto"
             disabled={currentStep === 0}
             onClick={() => setCurrentStep(currentStep - 1)}
           >
             Sebelumnya
           </Button>
-          <Button onClick={handleNext}>
+          <Button onClick={handleNext} className="w-full md:w-auto">
             {currentStep === questions.length - 1 ? "Selesai & Hitung" : "Selanjutnya"}
           </Button>
         </CardFooter>
