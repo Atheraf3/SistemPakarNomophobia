@@ -10,7 +10,7 @@ function Navbar() {
     { to: "/", label: "Beranda", show: true },
     { to: "/diagnosis", label: "Diagnosis", show: isAuthenticated && role === "user" },
     { to: "/history", label: "Riwayat", show: isAuthenticated && role === "user" },
-    { to: "/about", label: "Tentang", show: true },
+    { to: "/about", label: "Informasi", show: true },
   ];
 
   const handleLogout = () => {
@@ -23,7 +23,7 @@ function Navbar() {
       <div className="container mx-auto flex h-14 items-center px-4 justify-between">
         <div className="flex items-center">
           <Link to="/" className="mr-6 flex items-center font-bold text-lg">
-            <img src="https://ik.imagekit.io/2xthk8ud4/TA/Logo.png" alt="Sistem Pakar Logo" className="h-16 w-auto" />
+            <img src="https://ik.imagekit.io/2xthk8ud4/TA/Fav.png" alt="Sistem Pakar Logo" className="h-16 w-auto" />
           </Link>
           <nav className="flex gap-6 text-sm font-medium">
             {navItems
@@ -50,19 +50,19 @@ function Navbar() {
             <>
               {role === "admin" && (
                 <Link to="/admin">
-                  <Button variant="outline" size="sm">Admin Dashboard</Button>
+                  <Button variant="outline" size="sm" className="cursor-pointer">Admin Dashboard</Button>
                 </Link>
               )}
               {role === "user" && (
                 <Link to="/profile">
-                  <Button variant="ghost" size="sm">Profil</Button>
+                  <Button variant="ghost" size="sm" className="cursor-pointer">Profil</Button>
                 </Link>
               )}
-              <Button variant="destructive" size="sm" onClick={handleLogout}>Logout</Button>
+              <Button variant="destructive" size="sm" onClick={handleLogout} className="cursor-pointer">Logout</Button>
             </>
           ) : (
             <Link to="/login">
-              <Button size="sm">Login</Button>
+              <Button size="sm" className="cursor-pointer">Login</Button>
             </Link>
           )}
         </div>

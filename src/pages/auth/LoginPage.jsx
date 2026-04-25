@@ -74,12 +74,12 @@ export default function LoginPage() {
             </div>
             {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
             
-            <Button type="submit" className="w-full">Masuk</Button>
+            <Button type="submit" className="w-full cursor-pointer">Masuk</Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-slate-500">
-            Belum punya akun? <Link to="/register" className="text-blue-600 hover:underline">Daftar sekarang</Link>
+            Belum punya akun? <Link to="/register" className="text-blue-600 hover:underline cursor-pointer">Daftar sekarang</Link>
           </p>
         </CardFooter>
       </Card>

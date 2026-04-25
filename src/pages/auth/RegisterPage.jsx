@@ -62,12 +62,12 @@ export default function RegisterPage() {
               />
             </div>
             
-            <Button type="submit" className="w-full">Daftar</Button>
+            <Button type="submit" className="w-full cursor-pointer">Daftar</Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-slate-500">
-            Sudah punya akun? <Link to="/login" className="text-blue-600 hover:underline">Masuk di sini</Link>
+            Sudah punya akun? <Link to="/login" className="text-blue-600 hover:underline cursor-pointer">Masuk di sini</Link>
           </p>
         </CardFooter>
       </Card>

@@ -6,7 +6,7 @@ export default function ProfilePage() {
   const { user } = useAuthStore();
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="container mx-auto max-w-2xl px-4 md:px-8 py-6 md:py-8 space-y-6">
       <h2 className="text-2xl font-bold tracking-tight">Profil Pengguna</h2>
       
       <Card>

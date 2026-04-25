@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Smartphone, Globe, MousePointerClick, Clock } from "lucide-react";
-import { motion, useInView, animate } from "framer-motion";
+import { Smartphone, Globe, MousePointerClick, Clock, BookOpen, Activity, ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react";
+import { motion as Motion, useInView, animate } from "framer-motion";
 
 // Komponen untuk animasi Angka (Counter) dari 0 ke target
 function AnimatedCounter({ from = 0, to, suffix = "", duration = 2.5 }) {
@@ -100,125 +100,244 @@ export default function HomePage() {
     <div className="flex flex-col items-center min-h-screen w-full bg-gradient-to-b from-slate-50 to-white pb-24 overflow-hidden">
       {/* Hero Section */}
       <section className="w-full flex flex-col items-center justify-center text-center py-20 px-4 md:py-28">
-        <motion.div 
+        <Motion.div 
           className="space-y-6 max-w-4xl flex flex-col items-center"
           variants={heroVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Badge Label (Berdenyut konstan) */}
-          <motion.div variants={itemFadeUp}>
-            <motion.span 
+          {/* Badge Label */}
+          <Motion.div variants={itemFadeUp}>
+            <Motion.span 
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               className="inline-flex items-center rounded-full bg-blue-100/80 px-4 py-1.5 text-sm font-semibold text-blue-700 border border-blue-200 backdrop-blur-sm shadow-sm"
             >
               Sistem Pakar Deteksi Dini
-            </motion.span>
-          </motion.div>
+            </Motion.span>
+          </Motion.div>
 
-          {/* Main Title (Typewriter) */}
-          <motion.div variants={itemFadeUp} className="min-h-[60px] md:min-h-[90px] flex items-center justify-center">
+          {/* Main Title */}
+          <Motion.div variants={itemFadeUp} className="min-h-[60px] md:min-h-[90px] flex items-center justify-center">
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900">
               <TypewriterText text="NOMOPHOBIA" />
             </h1>
-          </motion.div>
+          </Motion.div>
 
           {/* Subtitle */}
-          <motion.div variants={itemFadeUp}>
+          <Motion.div variants={itemFadeUp}>
             <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mt-2">
               Lebih dari sekadar kebiasaan. Nomophobia (No Mobile Phone Phobia) adalah kondisi psikologis di mana seseorang mengalami kecemasan ekstrem saat terputus dari ponselnya.
             </p>
-          </motion.div>
+          </Motion.div>
 
-          {/* Call To Action Buttons */}
-          <motion.div variants={itemFadeUp} className="flex flex-wrap items-center justify-center gap-4 pt-6">
-            <Link to="/diagnosis">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" className="text-base px-8 h-14 rounded-full shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-shadow font-semibold">
-                  Mulai Diagnosis Sekarang
-                </Button>
-              </motion.div>
-            </Link>
-            <Link to="/about">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="lg" className="text-base px-8 h-14 rounded-full border-2 font-semibold bg-white/80 backdrop-blur-sm">
-                  Pelajari Lebih Lanjut
-                </Button>
-              </motion.div>
-            </Link>
-          </motion.div>
-        </motion.div>
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-8 w-full max-w-5xl">
+            {/* Feature 1 */}
+            <Motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0 }}
+              whileHover={{ y: -6, scale: 1.02, boxShadow: "0 12px 30px -8px rgba(0,0,0,0.12)" }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white/80 backdrop-blur border border-slate-100 rounded-xl text-left cursor-default"
+            >
+              <div className="p-5 flex flex-col gap-3">
+                <Motion.div
+                  className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center"
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <BookOpen size={20} />
+                </Motion.div>
+                <h3 className="font-bold text-slate-900 text-base">Basis Pengetahuan</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Sistem pakar berbasis CF & NMPQ untuk menganalisis ketergantungan smartphone.
+                </p>
+              </div>
+            </Motion.div>
+
+            {/* Feature 2 */}
+            <Motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+              whileHover={{ y: -6, scale: 1.02, boxShadow: "0 12px 30px -8px rgba(0,0,0,0.12)" }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white/80 backdrop-blur border border-slate-100 rounded-xl text-left cursor-default"
+            >
+              <div className="p-5 flex flex-col gap-3">
+                <Motion.div
+                  className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center"
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                >
+                  <Activity size={20} />
+                </Motion.div>
+                <h3 className="font-bold text-slate-900 text-base">Analisis Perilaku</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Menilai tingkat ketergantungan dari pola dan intensitas penggunaan smartphone harian.
+                </p>
+              </div>
+            </Motion.div>
+
+            {/* Feature 3 */}
+            <Motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+              whileHover={{ y: -6, scale: 1.02, boxShadow: "0 12px 30px -8px rgba(0,0,0,0.12)" }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white/80 backdrop-blur border border-slate-100 rounded-xl text-left cursor-default"
+            >
+              <div className="p-5 flex flex-col gap-3">
+                <Motion.div
+                  className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center"
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                >
+                  <ShieldCheck size={20} />
+                </Motion.div>
+                <h3 className="font-bold text-slate-900 text-base">Saran Pakar</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Rekomendasi penanganan dan detoks digital sesuai tingkat kecanduan.
+                </p>
+              </div>
+            </Motion.div>
+          </div>
+        </Motion.div>
       </section>
 
-      {/* Statistics Section */}
-      <section className="w-full max-w-7xl px-6 lg:px-8 mt-4 md:mt-8">
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          variants={gridVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Card 1 */}
-          <motion.div variants={itemFadeUp}>
-            <Card className="border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white/60 backdrop-blur-md">
-              <CardContent className="flex flex-col items-center text-center p-8 h-full">
-                <div className="h-16 w-16 bg-blue-50 text-blue-600 flex items-center justify-center rounded-2xl mb-6 shadow-sm">
-                  <Smartphone size={32} strokeWidth={1.5} />
-                </div>
-                <h4 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-                  <AnimatedCounter to={50} suffix=" Miliar" />
-                </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">Jumlah telepon seluler di seluruh dunia.</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+      {/* Data Highlight Section  */}
+      <section className="w-full relative py-12 md:py-16 -mt-8 md:-mt-16 overflow-hidden z-10">
+        {/* Layer 1: Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop')" }}
+        ></div>
+        
+        {/* Layer 2: Dark Overlay */}
+        <div className="absolute inset-0 bg-[#0a1128]/85"></div>
+        
+        {/* Layer 3: Subtle Glow */}
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
 
-          {/* Card 2 */}
-          <motion.div variants={itemFadeUp}>
-            <Card className="border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white/60 backdrop-blur-md">
-              <CardContent className="flex flex-col items-center text-center p-8 h-full">
-                <div className="h-16 w-16 bg-blue-50 text-blue-600 flex items-center justify-center rounded-2xl mb-6 shadow-sm">
-                  <Globe size={32} strokeWidth={1.5} />
-                </div>
-                <h4 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-                  <AnimatedCounter to={59} suffix="%" />
-                </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">Dari populasi dunia kini memiliki akses internet.</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+        {/* Content Container */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 lg:px-8">
+          <Motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 lg:divide-x divide-white/10"
+            variants={gridVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
+            {/* Stat 1 */}
+            <Motion.div 
+              variants={itemFadeUp} 
+              className="flex flex-col items-center text-center px-4 py-6 group transition-transform duration-300 hover:-translate-y-1.5"
+            >
+              <Smartphone className="text-cyan-400 mb-5 opacity-90 group-hover:opacity-100 transition-opacity" size={28} strokeWidth={1.5} />
+              <span className="text-5xl md:text-6xl font-black text-white tracking-tight leading-none mb-3 drop-shadow-md">
+                <AnimatedCounter to={50} suffix="Jt" />
+              </span>
+              <span className="text-sm md:text-base text-blue-100/60 font-medium leading-snug max-w-[160px]">
+                Pengguna seluler di seluruh dunia
+              </span>
+            </Motion.div>
 
-          {/* Card 3 */}
-          <motion.div variants={itemFadeUp}>
-            <Card className="border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white/60 backdrop-blur-md">
-              <CardContent className="flex flex-col items-center text-center p-8 h-full">
-                <div className="h-16 w-16 bg-blue-50 text-blue-600 flex items-center justify-center rounded-2xl mb-6 shadow-sm">
-                  <MousePointerClick size={32} strokeWidth={1.5} />
-                </div>
-                <h4 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-                  <AnimatedCounter to={96} suffix=" Kali" />
-                </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">Rata-rata orang memeriksa ponsel mereka setiap harinya.</p>
-              </CardContent>
-            </Card>
-          </motion.div>
+            {/* Stat 2 */}
+            <Motion.div 
+              variants={itemFadeUp} 
+              className="flex flex-col items-center text-center px-4 py-6 group transition-transform duration-300 hover:-translate-y-1.5"
+            >
+              <Globe className="text-cyan-400 mb-5 opacity-90 group-hover:opacity-100 transition-opacity" size={28} strokeWidth={1.5} />
+              <span className="text-5xl md:text-6xl font-black text-white tracking-tight leading-none mb-3 drop-shadow-md">
+                <AnimatedCounter to={59} suffix="%" />
+              </span>
+              <span className="text-sm md:text-base text-blue-100/60 font-medium leading-snug max-w-[160px]">
+                Populasi global terhubung internet
+              </span>
+            </Motion.div>
 
-          {/* Card 4 */}
-          <motion.div variants={itemFadeUp}>
-            <Card className="border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white/60 backdrop-blur-md">
-              <CardContent className="flex flex-col items-center text-center p-8 h-full">
-                <div className="h-16 w-16 bg-blue-50 text-blue-600 flex items-center justify-center rounded-2xl mb-6 shadow-sm">
-                  <Clock size={32} strokeWidth={1.5} />
+            {/* Stat 3 */}
+            <Motion.div 
+              variants={itemFadeUp} 
+              className="flex flex-col items-center text-center px-4 py-6 group transition-transform duration-300 hover:-translate-y-1.5"
+            >
+              <MousePointerClick className="text-cyan-400 mb-5 opacity-90 group-hover:opacity-100 transition-opacity" size={28} strokeWidth={1.5} />
+              <span className="text-5xl md:text-6xl font-black text-white tracking-tight leading-none mb-3 drop-shadow-md">
+                <AnimatedCounter to={96} suffix="x" />
+              </span>
+              <span className="text-sm md:text-base text-blue-100/60 font-medium leading-snug max-w-[160px]">
+                Rata-rata cek ponsel setiap hari
+              </span>
+            </Motion.div>
+
+            {/* Stat 4 */}
+            <Motion.div 
+              variants={itemFadeUp} 
+              className="flex flex-col items-center text-center px-4 py-6 group transition-transform duration-300 hover:-translate-y-1.5"
+            >
+              <Clock className="text-cyan-400 mb-5 opacity-90 group-hover:opacity-100 transition-opacity" size={28} strokeWidth={1.5} />
+              <span className="text-5xl md:text-6xl font-black text-white tracking-tight leading-none mb-3 drop-shadow-md">
+                <AnimatedCounter to={5} suffix="Jam" />
+              </span>
+              <span className="text-sm md:text-base text-blue-100/60 font-medium leading-snug max-w-[160px]">
+                Rata-rata screen time harian
+              </span>
+            </Motion.div>
+          </Motion.div>
+        </div>
+      </section>
+
+      {/* CTA Bottom Section */}
+      <section className="w-full max-w-5xl mx-auto px-4 lg:px-8 mt-12 md:mt-16 mb-8 relative z-10">
+        <Motion.div variants={itemFadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+          <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 border-none shadow-2xl overflow-hidden rounded-3xl">
+            <CardContent className="p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 justify-between relative">
+              {/* Decorative Elements */}
+              <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-48 h-48 bg-blue-400 opacity-20 rounded-full blur-2xl"></div>
+
+              <div className="text-left space-y-4 md:w-2/3 z-10">
+                <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Siap melakukan diagnosa?</h2>
+                <p className="text-blue-100 text-base md:text-lg leading-relaxed max-w-xl">
+                  Proses diagnosa ini akan memandu Anda melalui beberapa pertanyaan terkait aktivitas penggunaan handphone harian Anda.
+                </p>
+                <div className="flex flex-col gap-2 pt-2">
+                  <div className="flex items-center gap-2 text-white/90">
+                    <CheckCircle2 size={18} className="text-blue-200" />
+                    <span>Estimasi waktu 3-5 menit saja</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <CheckCircle2 size={18} className="text-blue-200" />
+                    <span>Jawab berdasarkan aktivitas riil Anda</span>
+                  </div>
                 </div>
-                <h4 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-                  <AnimatedCounter to={5} suffix=" Jam" />
-                </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">Rata-rata waktu yang dihabiskan di layar ponsel per hari.</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
+              </div>
+
+              <div className="flex flex-col gap-4 w-full md:w-auto z-10 shrink-0">
+                <Link to="/diagnosis" className="w-full cursor-pointer">
+                  <Motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="cursor-pointer">
+                    <Button size="lg" className="w-full text-blue-700 bg-white hover:bg-slate-50 px-8 h-14 rounded-full shadow-lg font-bold text-base cursor-pointer">
+                      Mulai Diagnosis Sekarang <ArrowRight size={18} className="ml-2" />
+                    </Button>
+                  </Motion.div>
+                </Link>
+                <Link to="/about" className="w-full cursor-pointer">
+                  <Motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="cursor-pointer">
+                    <Button variant="outline" size="lg" className="w-full text-white border-white/30 bg-white/10 hover:bg-white/20 hover:text-white px-8 h-12 rounded-full font-semibold transition-all cursor-pointer">
+                      Pelajari Lebih Lanjut
+                    </Button>
+                  </Motion.div>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </Motion.div>
       </section>
     </div>
   );

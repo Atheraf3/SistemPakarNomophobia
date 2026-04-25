@@ -12,7 +12,7 @@ export default function HistoryPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Riwayat Diagnosis</h2>

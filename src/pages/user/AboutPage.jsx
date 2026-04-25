@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 
 export default function AboutPage() {
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="container mx-auto max-w-4xl px-4 md:px-8 py-6 md:py-8 space-y-8">
       <div className="text-center space-y-4">
         <h2 className="text-3xl font-extrabold tracking-tight">Tentang Sistem Pakar</h2>
         <p className="text-lg text-slate-500">

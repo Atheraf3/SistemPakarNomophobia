@@ -6,7 +6,7 @@ function MainLayout() {
   return (
     <div className="flex min-h-screen flex-col w-full overflow-x-hidden">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 md:px-8 py-6 md:py-8 w-full">
+      <main className="flex-1 flex flex-col w-full">
         <Outlet />
       </main>
       <Footer />
