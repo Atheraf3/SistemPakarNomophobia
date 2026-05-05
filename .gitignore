@@ -1,25 +1,30 @@
-# Logs
-logs
+# Backend
+backend/node_modules/
+backend/.env
+backend/.env.local
+backend/dist/
+backend/build/
+
+# Frontend
+frontend-skripsi/node_modules/
+frontend-skripsi/dist/
+frontend-skripsi/build/
+frontend-skripsi/.env
+frontend-skripsi/.env.local
+
+# General
+.DS_Store
+.vscode/
+.idea/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dev-dist
-dist
-dist-ssr
-*.local
+# Dependencies
+node_modules/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Environment files
+.env
+.env.local
+.env.*.local
