@@ -8,9 +8,12 @@ backend/build/
 # Frontend
 frontend-skripsi/node_modules/
 frontend-skripsi/dist/
+frontend-skripsi/dist-ssr/
+frontend-skripsi/dev-dist/
 frontend-skripsi/build/
 frontend-skripsi/.env
 frontend-skripsi/.env.local
+frontend-skripsi/*.local
 
 # General
 .DS_Store
