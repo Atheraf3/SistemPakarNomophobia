@@ -16,6 +16,7 @@ function AdminLayout() {
   };
 
   const navItems = [
+    { to: "/admin/dashboard", label: "Dashboard" },
     { to: "/admin/penyakit", label: "Kelola Tingkat" },
     { to: "/admin/gejala", label: "Kelola Gejala" },
     { to: "/admin/knowledge-base", label: "Knowledge Base (CF Pakar)" },
@@ -23,8 +24,8 @@ function AdminLayout() {
     { to: "/admin/solusi", label: "Kelola Solusi" },
   ];
 
-  // Komponen Sidebar Terpisah agar bisa dipakai ulang di Sheet
-  const SidebarContent = () => (
+  // Render helper function untuk memisahkan Sidebar
+  const renderSidebar = () => (
     <>
       <div className="h-14 flex items-center justify-center border-b border-slate-700/50 font-bold text-lg text-white">
         <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>Admin Dashboard</Link>
@@ -63,7 +64,7 @@ function AdminLayout() {
     <div className="flex min-h-screen">
       {/* Sidebar Dekstop */}
       <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col">
-        <SidebarContent />
+        {renderSidebar()}
       </aside>
 
       {/* Main Content */}
@@ -85,7 +86,7 @@ function AdminLayout() {
                   <SheetTitle>Navigasi Admin</SheetTitle>
                   <SheetDescription>Menu admin untuk mengelola sistem pakar.</SheetDescription>
                 </span>
-                <SidebarContent />
+                {renderSidebar()}
               </SheetContent>
             </Sheet>
           </div>

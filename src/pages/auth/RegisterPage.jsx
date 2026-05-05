@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +10,20 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const register = useAuthStore((state) => state.register);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulasi registrasi
-    alert("Registrasi dummy berhasil. Silakan login menggunakan akun dummy.");
-    navigate("/login");
+    setError("");
+    try {
+      await register(name, email, password);
+      alert("Registrasi berhasil. Silakan login.");
+      navigate("/login");
+    } catch (error) {
+      setError(error.response?.data?.message || "Registrasi gagal. Coba lagi.");
+    }
   };
 
   return (
@@ -61,6 +69,7 @@ export default function RegisterPage() {
                 required
               />
             </div>
+            {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
             
             <Button type="submit" className="w-full cursor-pointer">Daftar</Button>
           </form>

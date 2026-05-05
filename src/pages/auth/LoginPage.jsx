@@ -14,20 +14,20 @@ export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    const success = login(email, password);
-    if (success) {
+    try {
+      await login(email, password);
       const state = useAuthStore.getState();
       if (state.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/");
       }
-    } else {
-      setError("Email atau password salah.");
+    } catch (error) {
+      setError(error.response?.data?.message || "Email atau password salah.");
     }
   };
 
@@ -37,19 +37,10 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl md:text-2xl font-bold text-center">Login</CardTitle>
           <CardDescription className="text-sm md:text-base text-center">
-            Pilih kredensial di bawah ini untuk menguji hak akses (password bebas)
+            Masuk dengan akun yang telah terdaftar
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Info Akun Dummy */}
-          <div className="mb-6 p-4 bg-blue-50 text-blue-900 border border-blue-200 rounded-md text-sm">
-            <p className="font-semibold mb-1">Dummy Akun untuk Testing:</p>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li><strong>Admin:</strong> admin@test.com</li>
-              <li><strong>User:</strong> user@test.com</li>
-            </ul>
-          </div>
-
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

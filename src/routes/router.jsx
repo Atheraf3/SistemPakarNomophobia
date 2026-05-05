@@ -19,6 +19,7 @@ import AboutPage from "@/pages/user/AboutPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 // Admin Pages
+import DashboardPage from "@/pages/admin/DashboardPage";
 import ManagePenyakitPage from "@/pages/admin/ManagePenyakitPage";
 import ManageGejalaPage from "@/pages/admin/ManageGejalaPage";
 import ManageKnowledgeBasePage from "@/pages/admin/ManageKnowledgeBasePage";
@@ -80,8 +81,12 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            // Secara default arahkan ke manage penyakit jika route /admin dipukul
-            element: <ManagePenyakitPage />,
+            // Secara default arahkan ke dashboard jika route /admin dipukul
+            element: <DashboardPage />,
+          },
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
           },
           {
             path: "penyakit",

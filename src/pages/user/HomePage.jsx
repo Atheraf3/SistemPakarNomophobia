@@ -99,7 +99,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col items-center min-h-screen w-full bg-gradient-to-b from-slate-50 to-white pb-24 overflow-hidden">
       {/* Hero Section */}
-      <section className="w-full flex flex-col items-center justify-center text-center py-20 px-4 md:py-28">
+      <section className="w-full flex flex-col items-center justify-center text-center py-8 md:py-12 px-4">
         <Motion.div 
           className="space-y-6 max-w-4xl flex flex-col items-center"
           variants={heroVariants}
@@ -212,7 +212,7 @@ export default function HomePage() {
       </section>
 
       {/* Data Highlight Section  */}
-      <section className="w-full relative py-12 md:py-16 -mt-8 md:-mt-16 overflow-hidden z-10">
+      <section className="w-full relative py-12 md:py-16 mt-8 md:mt-12 overflow-hidden z-10">
         {/* Layer 1: Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
