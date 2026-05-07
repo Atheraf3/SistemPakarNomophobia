@@ -1,33 +1,59 @@
-# Backend
-backend/node_modules/
-backend/.env
-backend/.env.local
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production / Builds
+dist/
+build/
+.next/
+out/
+bin/
+obj/
+frontend/dist/
+frontend/dist-ssr/
+frontend/dev-dist/
+frontend/build/
 backend/dist/
 backend/build/
 
-# Frontend
-frontend-skripsi/node_modules/
-frontend-skripsi/dist/
-frontend-skripsi/dist-ssr/
-frontend-skripsi/dev-dist/
-frontend-skripsi/build/
-frontend-skripsi/.env
-frontend-skripsi/.env.local
-frontend-skripsi/*.local
+# Environment Files (SENSITIVE)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/*.local
 
-# General
-.DS_Store
-.vscode/
-.idea/
+# Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Dependencies
-node_modules/
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
 
-# Environment files
-.env
-.env.local
-.env.*.local
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Misc
+.eslintcache
+.cache/
