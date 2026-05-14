@@ -26,16 +26,28 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'producti
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000, 
+    max: 100 
 });
 app.use('/api/', limiter);
 
 // Basic Middlewares
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://sikar-nmp.vercel.app',
+    ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(o => o.trim()) : []),
+];
+
 app.use(cors({
-    origin: clientUrl,
-    credentials: true 
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS: Origin '${origin}' not allowed`));
+    },
+    credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
