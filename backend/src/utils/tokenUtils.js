@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// Generate Access Token (short-lived, e.g., 15m)
+// Generate Access Token 
 const generateAccessToken = (userId, role) => {
     return jwt.sign(
         { id: userId, role },
@@ -10,7 +10,7 @@ const generateAccessToken = (userId, role) => {
     );
 };
 
-// Generate Refresh Token (long-lived, e.g., 7d)
+// Generate Refresh Token 
 const generateRefreshToken = (userId) => {
     return jwt.sign(
         { id: userId },

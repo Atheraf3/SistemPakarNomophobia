@@ -1,24 +1,18 @@
-// Fix: Force Node.js to use Google DNS & IPv4 (fixes querySrv ECONNREFUSED on MongoDB Atlas)
-const dns = require('dns');
-dns.setDefaultResultOrder('ipv4first');
-dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-
-// Routes imports
-const diagnosisRoutes = require('./src/routes/diagnosisRoutes');
-const authRoutes = require('./src/routes/authRoutes');
+const connectDB = require('./src/config/db');
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
 
 // Load environment variables
 dotenv.config();
+
+// Connect to Database
+connectDB();
 
 const app = express();
 
@@ -41,27 +35,10 @@ app.use('/api/', limiter);
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
     origin: clientUrl,
-    credentials: true // to allow cookies
+    credentials: true 
 }));
 app.use(express.json());
 app.use(cookieParser());
-
-// Database connection
-const connectDB = async () => {
-    try {
-        const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/skripsi_db';
-        const conn = await mongoose.connect(mongoUri, {
-            family: 4,                      // Force IPv4
-            serverSelectionTimeoutMS: 10000, // Timeout 10 detik
-        });
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-        console.error(`Error connecting to MongoDB: ${error.message}`);
-        process.exit(1);
-    }
-};
-
-connectDB();
 
 // Basic route
 app.get('/', (req, res) => {
@@ -69,11 +46,13 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.use('/api/diagnosis', diagnosisRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/diagnosis', require('./src/routes/diagnosisRoutes'));
+app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/tingkat', require('./src/routes/tingkatRoutes'));
 app.use('/api/gejala', require('./src/routes/gejalaRoutes'));
 app.use('/api/knowledge-base', require('./src/routes/knowledgeBaseRoutes'));
+app.use('/api/config', require('./src/routes/configRoutes'));
+app.use('/api/cf-options', require('./src/routes/cfOptionRoutes'));
 
 // Error Middleware
 app.use(errorHandler);
@@ -83,4 +62,3 @@ const PORT = process.env.PORT || 5151;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-// Trigger nodemon restart 2

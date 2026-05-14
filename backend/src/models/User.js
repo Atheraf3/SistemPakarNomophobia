@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
     age: { type: Number },
     role: { type: String, enum: ['admin', 'user'], default: 'user' },
     quota: { type: Number, default: 3 },
+    shareData: { type: Boolean, default: false },
     refreshTokens: [String],
     resetPasswordToken: String,
     resetPasswordExpire: Date

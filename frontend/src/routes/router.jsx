@@ -13,7 +13,6 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 // User Pages
 import HomePage from "@/pages/user/HomePage";
 import DiagnosisPage from "@/pages/user/DiagnosisPage";
-import HistoryPage from "@/pages/user/HistoryPage";
 import ProfilePage from "@/pages/user/ProfilePage";
 import AboutPage from "@/pages/user/AboutPage";
 import NotFoundPage from "@/pages/NotFoundPage";
@@ -25,6 +24,7 @@ import ManageGejalaPage from "@/pages/admin/ManageGejalaPage";
 import ManageKnowledgeBasePage from "@/pages/admin/ManageKnowledgeBasePage";
 import ManageUsersPage from "@/pages/admin/ManageUsersPage";
 import ManageSolutionsPage from "@/pages/admin/ManageSolutionsPage";
+import ManageCfOptionPage from "@/pages/admin/ManageCfOptionPage";
 
 export const router = createBrowserRouter([
   // 1. Rute Publik (Auth)
@@ -58,10 +58,7 @@ export const router = createBrowserRouter([
             path: "diagnosis",
             element: <DiagnosisPage />,
           },
-          {
-            path: "history",
-            element: <HistoryPage />,
-          },
+
           {
             path: "profile",
             element: <ProfilePage />,
@@ -107,6 +104,10 @@ export const router = createBrowserRouter([
           {
             path: "solusi",
             element: <ManageSolutionsPage />,
+          },
+          {
+            path: "cf-options",
+            element: <ManageCfOptionPage />,
           },
         ]
       }

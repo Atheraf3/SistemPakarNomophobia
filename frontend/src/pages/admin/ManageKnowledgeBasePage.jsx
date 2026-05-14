@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,39 +8,43 @@ import axios from "axios";
 import html2pdf from "html2pdf.js";
 import toast from "react-hot-toast";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5151/api";
+const API_URL = `${BASE_URL}/knowledge-base`;
+
 export default function ManageKnowledgeBasePage() {
   const [kbData, setKbData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ id: "", kode_gejala: "", mb: "", md: "" });
-  const [refreshKey, setRefreshKey] = useState(0);
   const tableRef = useRef(null);
 
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5151/api";
-  const API_URL = `${BASE_URL}/knowledge-base`;
+  const fetchKb = useCallback(async function fetchKb() {
+    const res = await axios.get(API_URL, { withCredentials: true });
+    return res.data.data;
+  }, []);
 
-  // Ambil semua data KB
-  useEffect(() => {
-    let isMounted = true;
-    axios.get(API_URL, { withCredentials: true })
-      .then((res) => {
-        if (isMounted) {
-          setKbData(res.data.data);
+  useEffect(function initKb() {
+    let ignore = false;
+    async function startFetching() {
+      try {
+        const data = await fetchKb();
+        if (!ignore) {
+          setKbData(data);
           setLoading(false);
         }
-      })
-      .catch((error) => {
-        if (isMounted) {
+      } catch (error) {
+        if (!ignore) {
           console.error("Gagal mengambil data KB", error);
           toast.error("Gagal mengambil data dari server.");
           setLoading(false);
         }
-      });
-    return () => { isMounted = false; };
-  }, [API_URL, refreshKey]);
+      }
+    }
+    startFetching();
+    return () => { ignore = true; };
+  }, [fetchKb]);
 
-  // Sync KB dengan daftar gejala terbaru
   const handleSync = async () => {
     setSyncing(true);
     try {
@@ -51,7 +55,9 @@ export default function ManageKnowledgeBasePage() {
       } else {
         toast.success("Basis pengetahuan sudah sinkron dengan daftar gejala.");
       }
-      setRefreshKey((prev) => prev + 1);
+      
+      const updatedData = await fetchKb();
+      setKbData(updatedData);
     } catch (error) {
       console.error(error);
       toast.error("Gagal melakukan sinkronisasi.");
@@ -72,7 +78,6 @@ export default function ManageKnowledgeBasePage() {
 
   const handleCloseModal = () => setIsModalOpen(false);
 
-  // Hitung CF Pakar preview secara real-time di form
   const cfPreview = () => {
     const mb = parseFloat(formData.mb);
     const md = parseFloat(formData.md);
@@ -88,7 +93,9 @@ export default function ManageKnowledgeBasePage() {
       await axios.put(`${API_URL}/${formData.id}`, { mb: formData.mb, md: formData.md }, { withCredentials: true });
       toast.success(`Bobot untuk ${formData.kode_gejala} berhasil diperbarui!`);
       handleCloseModal();
-      setRefreshKey((prev) => prev + 1);
+      
+      const updatedData = await fetchKb();
+      setKbData(updatedData);
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Terjadi kesalahan saat menyimpan data");
@@ -107,7 +114,6 @@ export default function ManageKnowledgeBasePage() {
     html2pdf().set(opt).from(element).save();
   };
 
-  // Badge warna untuk CF Pakar
   const getCFBadge = (cf) => {
     if (cf === null || cf === undefined) return { text: "Belum diisi", cls: "bg-slate-100 text-slate-500" };
     if (cf >= 0.7) return { text: cf, cls: "bg-green-100 text-green-700 font-bold" };
@@ -130,7 +136,6 @@ export default function ManageKnowledgeBasePage() {
         </div>
       </div>
 
-      {/* Info Box */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 leading-relaxed">
         <strong>Cara penggunaan:</strong> Klik <strong>"Sinkron Gejala"</strong> untuk mengimpor semua gejala dari halaman Kelola Gejala ke tabel ini. Kemudian, klik <strong>"Edit Bobot"</strong> pada setiap baris untuk mengisi nilai <strong>MB</strong> (Measure of Belief) dan <strong>MD</strong> (Measure of Disbelief) dengan rentang <strong>0.0 – 1.0</strong>. Nilai <strong>CF Pakar = MB − MD</strong> akan dihitung otomatis.
       </div>

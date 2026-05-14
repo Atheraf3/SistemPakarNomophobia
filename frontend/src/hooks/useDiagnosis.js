@@ -30,7 +30,6 @@ export function useDiagnosis() {
     setLoading(true);
 
     try {
-      // Simulasi async
       await new Promise((resolve) => setTimeout(resolve, 800));
       const results = runForwardChaining(selectedSymptoms, rules);
       setDiagnosisResult(results);

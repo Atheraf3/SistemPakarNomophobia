@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,40 +8,43 @@ import axios from "axios";
 import html2pdf from "html2pdf.js";
 import toast from "react-hot-toast";
 
+const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/tingkat` : "http://localhost:5151/api/tingkat";
+
 export default function ManagePenyakitPage() {
   const [tingkatData, setTingkatData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ id: "", kode_tingkat: "", nama_tingkat: "", batas_min: "", batas_max: "" });
+  const [formData, setFormData] = useState({ id: "", kode_tingkat: "", nama_tingkat: "", batas_min: "", batas_max: "", solusi_detox: "" });
   const [isEdit, setIsEdit] = useState(false);
   const tableRef = useRef(null);
 
-  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/tingkat` : "http://localhost:5151/api/tingkat";
+  const fetchTingkat = useCallback(async function fetchTingkat() {
+    const res = await axios.get(API_URL, { withCredentials: true });
+    return res.data.data;
+  }, []);
 
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    let isMounted = true;
+  useEffect(function initTingkat() {
+    let ignore = false;
     
-    axios.get(API_URL, { withCredentials: true })
-      .then((res) => {
-        if (isMounted) {
-          setTingkatData(res.data.data);
+    async function startFetching() {
+      try {
+        const data = await fetchTingkat();
+        if (!ignore) {
+          setTingkatData(data);
           setLoading(false);
         }
-      })
-      .catch((error) => {
-        if (isMounted) {
+      } catch (error) {
+        if (!ignore) {
           console.error("Gagal mengambil data", error);
           toast.error("Gagal mengambil data tingkat dari server.");
           setLoading(false);
         }
-      });
+      }
+    }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [API_URL, refreshKey]);
+    startFetching();
+    return () => { ignore = true; };
+  }, [fetchTingkat]);
 
   const handleOpenModal = (tingkat = null) => {
     if (tingkat) {
@@ -50,11 +53,12 @@ export default function ManagePenyakitPage() {
         kode_tingkat: tingkat.kode_tingkat,
         nama_tingkat: tingkat.nama_tingkat,
         batas_min: tingkat.batas_min,
-        batas_max: tingkat.batas_max
+        batas_max: tingkat.batas_max,
+        solusi_detox: tingkat.solusi_detox || ""
       });
       setIsEdit(true);
     } else {
-      setFormData({ id: "", kode_tingkat: "", nama_tingkat: "", batas_min: "", batas_max: "" });
+      setFormData({ id: "", kode_tingkat: "", nama_tingkat: "", batas_min: "", batas_max: "", solusi_detox: "" });
       setIsEdit(false);
     }
     setIsModalOpen(true);
@@ -75,7 +79,10 @@ export default function ManagePenyakitPage() {
         toast.success("Berhasil menambahkan data!");
       }
       handleCloseModal();
-      setRefreshKey((prev) => prev + 1);
+      
+      // Refresh data
+      const updatedData = await fetchTingkat();
+      setTingkatData(updatedData);
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Terjadi kesalahan saat menyimpan data");
@@ -95,7 +102,8 @@ export default function ManagePenyakitPage() {
                 try {
                   await axios.delete(`${API_URL}/${id}`, { withCredentials: true });
                   toast.success("Data berhasil dihapus!");
-                  setRefreshKey((prev) => prev + 1);
+                  const updatedData = await fetchTingkat();
+                  setTingkatData(updatedData);
                 } catch (error) {
                   console.error(error);
                   toast.error("Gagal menghapus data");
@@ -190,7 +198,7 @@ export default function ManagePenyakitPage() {
       {/* Modal Overlay untuk Form Tambah / Edit */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl p-6 w-full max-md shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-200">
             <h3 className="text-xl font-bold mb-5">{isEdit ? "Edit Tingkat" : "Tambah Tingkat Baru"}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -240,6 +248,17 @@ export default function ManagePenyakitPage() {
                     required 
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="solusi_detox">Solusi / Saran</Label>
+                <textarea 
+                  id="solusi_detox" 
+                  className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={4}
+                  value={formData.solusi_detox} 
+                  onChange={(e) => setFormData({...formData, solusi_detox: e.target.value})} 
+                  placeholder="Masukkan solusi untuk tingkat ini..." 
+                />
               </div>
               <div className="flex justify-end gap-3 mt-8">
                 <Button type="button" variant="outline" onClick={handleCloseModal}>Batal</Button>

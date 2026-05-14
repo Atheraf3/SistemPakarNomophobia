@@ -13,7 +13,6 @@ function Navbar() {
   const navItems = [
     { to: "/", label: "Beranda", show: true },
     { to: "/diagnosis", label: "Diagnosis", show: isAuthenticated && role === "user" },
-    { to: "/history", label: "Riwayat", show: isAuthenticated && role === "user" },
     { to: "/about", label: "Informasi", show: true },
   ];
 

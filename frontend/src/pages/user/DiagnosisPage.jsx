@@ -7,15 +7,34 @@ import {
   AlertCircle, Lightbulb, ArrowRight, RotateCcw,
   Activity, Stethoscope
 } from "lucide-react";
-import { cfOptions, interpretCFLevel } from "@/utils/constants";
+
 import useDiagnosisStore from "@/store/useDiagnosisStore";
 import html2pdf from "html2pdf.js";
 import axios from "axios";
 
-// --- Phase constants ---
+//Phase constants
 const PHASE = { START: "start", QUIZ: "quiz", LOADING: "loading", RESULT: "result", ERROR: "error" };
 
-// --- Framer Motion Variants ---
+const CONFIG_API = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/config`
+  : "http://localhost:5151/api/config";
+
+const GEJALA_API = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/gejala`
+  : "http://localhost:5151/api/gejala";
+
+// Mapping warna berdasarkan nama_tingkat dari database
+const LEVEL_STYLES = {
+  "Tidak Nomophobia":  { color: "text-green-600",  bgColor: "bg-green-50",  borderColor: "border-green-200",  badgeColor: "bg-green-100 text-green-700",  barColor: "bg-green-500" },
+  "Nomophobia Ringan": { color: "text-blue-600",   bgColor: "bg-blue-50",   borderColor: "border-blue-200",   badgeColor: "bg-blue-100 text-blue-700",   barColor: "bg-blue-500" },
+  "Nomophobia Sedang": { color: "text-amber-600",  bgColor: "bg-amber-50",  borderColor: "border-amber-200",  badgeColor: "bg-amber-100 text-amber-700",  barColor: "bg-amber-500" },
+  "Nomophobia Berat":  { color: "text-red-600",    bgColor: "bg-red-50",    borderColor: "border-red-200",    badgeColor: "bg-red-100 text-red-700",    barColor: "bg-red-500" },
+  "Nomophobia Akut":   { color: "text-red-800",    bgColor: "bg-red-100",   borderColor: "border-red-300",   badgeColor: "bg-red-200 text-red-900",   barColor: "bg-red-700" },
+};
+
+const DEFAULT_STYLE = { color: "text-slate-600", bgColor: "bg-slate-50", borderColor: "border-slate-200", badgeColor: "bg-slate-100 text-slate-700", barColor: "bg-slate-400" };
+
+// Framer Motion Variants
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
@@ -142,9 +161,15 @@ function ProgressDots({ total, current, answered }) {
 }
 
 // Result Screen Component
-function ResultScreen({ result, onReset }) {
+function ResultScreen({ result, onReset, levels }) {
   const percentageFloat = parseFloat(result.persentase);
-  const level = interpretCFLevel(percentageFloat);
+  // Cari tingkat dari data database berdasarkan batas_min & batas_max
+  const matchedLevel = (levels || []).find(
+    (l) => percentageFloat >= l.batas_min && percentageFloat <= l.batas_max
+  );
+  // Ambil warna dari mapping Frontend berdasarkan nama_tingkat
+  const levelName = matchedLevel?.nama_tingkat || result.tingkat_keparahan?.nama_tingkat || "";
+  const style = LEVEL_STYLES[levelName] || DEFAULT_STYLE;
   const pdfRef = useRef(null);
 
   const handleDownloadPDF = () => {
@@ -177,14 +202,14 @@ function ResultScreen({ result, onReset }) {
         </div>
 
         {/* Card Hasil Utama */}
-        <Card className={`border-2 ${level.borderColor} ${level.bgColor} overflow-hidden`}>
+        <Card className={`border-2 ${style.borderColor} ${style.bgColor} overflow-hidden`}>
           <CardContent className="p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${level.badgeColor}`}>
-                  Tingkat Keyakinan: {level.label}
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${style.badgeColor}`}>
+                  Tingkat: {levelName || "Tidak Diketahui"}
                 </span>
-                <h3 className="text-xl font-extrabold text-slate-900 mt-2">{result.tingkat_keparahan?.nama_tingkat || "Tidak Diketahui"}</h3>
+                <h3 className="text-xl font-extrabold text-slate-900 mt-2">{levelName || "Tidak Diketahui"}</h3>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-3xl font-black text-slate-900">{result.persentase}</p>
@@ -194,7 +219,7 @@ function ResultScreen({ result, onReset }) {
             {/* Progress bar */}
             <div className="w-full bg-white/70 rounded-full h-3 overflow-hidden">
               <Motion.div
-                className={`h-full rounded-full ${level.barColor}`}
+                className={`h-full rounded-full ${style.barColor}`}
                 initial={{ width: 0 }}
                 animate={{ width: result.persentase }}
                 transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
@@ -240,9 +265,11 @@ function ResultScreen({ result, onReset }) {
 export default function DiagnosisPage() {
   const [phase, setPhase] = useState(PHASE.START);
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState({}); // { [index]: cfValue }
+  const [answers, setAnswers] = useState({});
   const [selectedOption, setSelectedOption] = useState(null);
   const [gejalaList, setGejalaList] = useState([]);
+  const [cfOptions, setCfOptions] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [gejalaLoading, setGejalaLoading] = useState(true);
   const [gejalaError, setGejalaError] = useState(false);
 
@@ -251,28 +278,33 @@ export default function DiagnosisPage() {
 
   const topRef = useRef(null);
 
-  // Fetch daftar gejala dari API
-  const API_URL = import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/gejala`
-    : "http://localhost:5151/api/gejala";
-
+  // Fetch gejala dan config dari API secara bersamaan
   useEffect(() => {
     let isMounted = true;
-    axios.get(API_URL)
-      .then((res) => {
+
+    async function initData() {
+      try {
+        const [resGejala, resConfig] = await Promise.all([
+          axios.get(GEJALA_API),
+          axios.get(CONFIG_API)
+        ]);
         if (isMounted) {
-          setGejalaList(res.data.data);
+          setGejalaList(resGejala.data.data);
+          setCfOptions(resConfig.data.data.cfOptions);
+          setLevels(resConfig.data.data.levels);
           setGejalaLoading(false);
         }
-      })
-      .catch(() => {
+      } catch {
         if (isMounted) {
           setGejalaError(true);
           setGejalaLoading(false);
         }
-      });
+      }
+    }
+
+    initData();
     return () => { isMounted = false; };
-  }, [API_URL]);
+  }, []);
 
   const total = gejalaList.length;
   const answeredSet = new Set(Object.keys(answers).map(Number));
@@ -393,7 +425,7 @@ export default function DiagnosisPage() {
         )}
 
         {phase === PHASE.RESULT && diagnosisResult && (
-          <ResultScreen key="result" result={diagnosisResult} onReset={handleReset} />
+          <ResultScreen key="result" result={diagnosisResult} onReset={handleReset} levels={levels} />
         )}
 
         {phase === PHASE.QUIZ && (

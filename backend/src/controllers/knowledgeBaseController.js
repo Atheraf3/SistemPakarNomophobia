@@ -12,15 +12,12 @@ exports.getAllKB = async (req, res) => {
     }
 };
 
-// Sync: Buat entry KB otomatis untuk setiap gejala yang belum ada
-// Dipanggil saat halaman Knowledge Base dibuka atau gejala baru ditambahkan
 exports.syncKBWithGejala = async (req, res) => {
     try {
         const allGejala = await Gejala.find({}).sort({ kode_gejala: 1 });
         const existingKB = await KnowledgeBase.find({});
         const existingCodes = new Set(existingKB.map(k => k.kode_gejala));
 
-        // Buat entry baru untuk gejala yang belum ada di KB
         const toInsert = allGejala
             .filter(g => !existingCodes.has(g.kode_gejala))
             .map(g => ({ kode_gejala: g.kode_gejala, mb: null, md: null, cf_pakar: null }));
@@ -29,7 +26,6 @@ exports.syncKBWithGejala = async (req, res) => {
             await KnowledgeBase.insertMany(toInsert);
         }
 
-        // Ambil semua KB (termasuk yang baru) dengan urutan gejala
         const updatedKB = await KnowledgeBase.find({}).sort({ kode_gejala: 1 });
         res.status(200).json({ data: updatedKB, synced: toInsert.length });
     } catch (error) {

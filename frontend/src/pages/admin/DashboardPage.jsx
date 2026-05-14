@@ -12,15 +12,20 @@ export default function DashboardPage() {
       try {
         const token = localStorage.getItem("token");
         const config = {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          withCredentials: true
         };
-        const response = await axios.get("http://localhost:5151/api/admin/stats", config);
+        
+        const API_URL = import.meta.env.VITE_API_URL 
+          ? `${import.meta.env.VITE_API_URL}/auth/admin/stats` 
+          : "http://localhost:5151/api/auth/admin/stats";
+
+        const response = await axios.get(API_URL, config);
         if (response.data && response.data.data) {
           setStats(response.data.data);
         }
       } catch (error) {
         console.error("Gagal mengambil statistik admin", error);
-        // Fallback or error handling can be done here
       } finally {
         setIsLoading(false);
       }

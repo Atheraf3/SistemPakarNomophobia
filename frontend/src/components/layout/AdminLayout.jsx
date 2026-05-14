@@ -17,11 +17,12 @@ function AdminLayout() {
 
   const navItems = [
     { to: "/admin/dashboard", label: "Dashboard" },
-    { to: "/admin/penyakit", label: "Kelola Tingkat" },
     { to: "/admin/gejala", label: "Kelola Gejala" },
     { to: "/admin/knowledge-base", label: "Knowledge Base (CF Pakar)" },
-    { to: "/admin/users", label: "Kelola Users" },
+    { to: "/admin/penyakit", label: "Kelola Tingkat" },
     { to: "/admin/solusi", label: "Kelola Solusi" },
+    { to: "/admin/users", label: "Kelola Users" },
+    { to: "/admin/cf-options", label: "Kelola CF Options" },
   ];
 
   // Render helper function untuk memisahkan Sidebar

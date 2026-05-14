@@ -26,9 +26,8 @@ exports.getTingkatById = async (req, res) => {
 // CREATE
 exports.createTingkat = async (req, res) => {
     try {
-        const { kode_tingkat, nama_tingkat, batas_min, batas_max } = req.body;
+        const { kode_tingkat, nama_tingkat, batas_min, batas_max, solusi_detox } = req.body;
         
-        // Cek duplikat kode
         const existing = await TingkatPenyakit.findOne({ kode_tingkat });
         if (existing) {
             return res.status(400).json({ message: "Kode tingkat sudah digunakan." });
@@ -38,7 +37,8 @@ exports.createTingkat = async (req, res) => {
             kode_tingkat,
             nama_tingkat,
             batas_min,
-            batas_max
+            batas_max,
+            solusi_detox: solusi_detox || ""
         });
 
         await newTingkat.save();
@@ -52,9 +52,8 @@ exports.createTingkat = async (req, res) => {
 // UPDATE
 exports.updateTingkat = async (req, res) => {
     try {
-        const { kode_tingkat, nama_tingkat, batas_min, batas_max } = req.body;
+        const { kode_tingkat, nama_tingkat, batas_min, batas_max, solusi_detox } = req.body;
         
-        // Cek duplikat kode (pastikan bukan dokumen ini sendiri)
         const existing = await TingkatPenyakit.findOne({ kode_tingkat, _id: { $ne: req.params.id } });
         if (existing) {
             return res.status(400).json({ message: "Kode tingkat sudah digunakan." });
@@ -62,7 +61,7 @@ exports.updateTingkat = async (req, res) => {
 
         const updated = await TingkatPenyakit.findByIdAndUpdate(
             req.params.id,
-            { kode_tingkat, nama_tingkat, batas_min, batas_max },
+            { kode_tingkat, nama_tingkat, batas_min, batas_max, solusi_detox },
             { new: true, runValidators: true }
         );
 

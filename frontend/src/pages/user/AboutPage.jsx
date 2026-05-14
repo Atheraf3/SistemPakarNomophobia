@@ -1,6 +1,20 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import axios from "axios";
 
 export default function AboutPage() {
+  const [tingkatList, setTingkatList] = useState([]);
+
+  const API_URL = import.meta.env.VITE_API_URL 
+    ? `${import.meta.env.VITE_API_URL}/tingkat` 
+    : "http://localhost:5151/api/tingkat";
+
+  useEffect(() => {
+    axios.get(API_URL)
+      .then(res => setTingkatList(res.data.data))
+      .catch(err => console.error("Gagal mengambil data tingkat", err));
+  }, [API_URL]);
+
   return (
     <div className="container mx-auto max-w-5xl px-4 md:px-8 py-8 md:py-12 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
@@ -101,10 +115,6 @@ export default function AboutPage() {
               <li><strong>MD:</strong> Tingkat ketidakpercayaan (<em>Measure of Disbelief</em>).</li>
               <li><strong>CF:</strong> Hasil kepastian (<em>Certainty Factor</em>).</li>
             </ul>
-
-            <p className="text-sm pt-1">
-              Dalam sistem ini, nilai <strong>MD</strong> adalah <strong>0</strong> karena semua pertanyaan pada instrumen NMPQ dirancang untuk mendukung hipotesis <strong>Nomophobia</strong>. Oleh karena itu, hasil <strong>CF</strong> didasarkan secara langsung pada gabungan nilai <strong>MB</strong> dari pakar dan masukan pengguna.
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -136,18 +146,22 @@ export default function AboutPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
               <span className="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">6</span>
-              Hasil Diagnosis
+              Tingkat Diagnosis
             </CardTitle>
           </CardHeader>
           <CardContent className="text-slate-700 leading-relaxed text-justify">
-            <p className="mb-3">Sistem menghasilkan output persentase kepastian dan mengkategorikan hasil ke dalam 5 tingkatan:</p>
-            <ul className="space-y-2 text-sm">
-              <li><span className="font-semibold text-emerald-600">Tidak Nomophobia:</span> Penggunaan smartphone normal tanpa indikasi ketergantungan.</li>
-              <li><span className="font-semibold text-blue-500">Ringan:</span> Ketergantungan awal yang masih dalam batas wajar.</li>
-              <li><span className="font-semibold text-yellow-600">Sedang:</span> Mulai muncul gejala kecemasan ringan jika terpisah dari perangkat.</li>
-              <li><span className="font-semibold text-orange-500">Berat:</span> Ketergantungan tinggi yang mulai memengaruhi rutinitas harian.</li>
-              <li><span className="font-semibold text-red-600">Akut:</span> Gejala kecemasan ekstrem yang membutuhkan intervensi serius.</li>
-            </ul>
+            <p className="mb-3">Sistem menghasilkan output persentase kepastian yang dikategorikan ke dalam beberapa tingkatan:</p>
+            {tingkatList.length > 0 ? (
+              <ul className="space-y-2 text-sm">
+                {tingkatList.map(t => (
+                  <li key={t._id}>
+                    <span className="font-semibold text-blue-600">{t.nama_tingkat} ({t.batas_min}% - {t.batas_max}%):</span> {t.solusi_detox ? t.solusi_detox.substring(0, 100) + "..." : "Sesuai anjuran sistem."}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500 italic">Memuat klasifikasi tingkat...</p>
+            )}
           </CardContent>
         </Card>
 
@@ -156,7 +170,7 @@ export default function AboutPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
               <span className="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">7</span>
-              Rekomendasi
+              Rekomendasi Umum
             </CardTitle>
           </CardHeader>
           <CardContent className="text-slate-700 leading-relaxed text-justify">
@@ -166,7 +180,7 @@ export default function AboutPage() {
               <li>Gunakan mode fokus pada jam-jam tertentu.</li>
               <li>Batasi notifikasi dari aplikasi yang tidak esensial.</li>
               <li>Lakukan aktivitas offline (luring) secara rutin.</li>
-              <li><strong>Cari bantuan profesional medis atau psikolog jika gejala berada pada tingkat berat atau akut.</strong></li>
+              <li><strong>Cari bantuan profesional medis atau psikolog jika gejala berada pada tingkat tinggi atau akut.</strong></li>
             </ul>
           </CardContent>
         </Card>

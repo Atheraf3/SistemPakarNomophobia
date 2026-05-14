@@ -6,7 +6,6 @@ const { calculateCertaintyFactor, determineSeverityLevel } = require('../utils/i
 
 exports.diagnose = async (req, res) => {
     try {
-        // Format userInputs yang diharapkan: [{ gejalaId: "G01", cfUser: 0.8 }, ...]
         const { userInputs } = req.body;
         
         const userId = req.user ? req.user._id : req.body.userId; 
@@ -19,24 +18,21 @@ exports.diagnose = async (req, res) => {
             return res.status(400).json({ message: "Data userInputs tidak valid." });
         }
 
-        // Cari user dan cek kuota
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User tidak ditemukan." });
         }
         
-        if (user.quota <= 0) {
+        if (user.role !== 'admin' && user.quota <= 0) {
             return res.status(403).json({ message: "Kuota diagnosis Anda telah habis." });
         }
 
-        // 1. Ambil Knowledge Base dari database (hanya yang sudah diisi nilainya)
         const kbData = await KnowledgeBase.find({ cf_pakar: { $ne: null } });
 
         if (!kbData || kbData.length === 0) {
             return res.status(500).json({ message: "Basis pengetahuan (CF Pakar) belum dikonfigurasi oleh admin." });
         }
 
-        // Format knowledge base agar sesuai dengan format inferenceEngine
         const knowledgeBase = kbData.map(kb => ({
             kode_gejala: kb.kode_gejala,
             cfPakar: kb.cf_pakar
@@ -45,14 +41,12 @@ exports.diagnose = async (req, res) => {
         // 2. Hitung CF
         const totalCf = calculateCertaintyFactor(userInputs, knowledgeBase);
 
-        // 3. Ambil referensi Tingkat Penyakit dari database
         const tingkatData = await TingkatPenyakit.find({}).sort({ batas_min: 1 });
         
         if (!tingkatData || tingkatData.length === 0) {
             return res.status(500).json({ message: "Data Tingkat Penyakit belum dikonfigurasi di sistem." });
         }
 
-        // 3. Tentukan Tingkat Keparahan
         const hasilTingkat = determineSeverityLevel(totalCf, tingkatData);
 
         // 4. Simpan Riwayat
@@ -64,9 +58,11 @@ exports.diagnose = async (req, res) => {
         });
         await riwayat.save();
 
-        // 5. Potong kuota user - 1
-        user.quota -= 1;
-        await user.save();
+        // 5. Potong kuota user - 1 (Hanya jika bukan admin)
+        if (user.role !== 'admin') {
+            user.quota -= 1;
+            await user.save();
+        }
 
         // 6. Kembalikan hasil akhir
         return res.status(200).json({
@@ -75,7 +71,7 @@ exports.diagnose = async (req, res) => {
                 nilai_cf: totalCf,
                 persentase: (totalCf * 100).toFixed(2) + "%",
                 tingkat_keparahan: hasilTingkat,
-                sisa_kuota: user.quota,
+                sisa_kuota: user.role === 'admin' ? "Unlimited" : user.quota,
                 riwayat_id: riwayat._id
             }
         });
@@ -83,5 +79,28 @@ exports.diagnose = async (req, res) => {
     } catch (error) {
         console.error("Error pada proses diagnosis:", error);
         res.status(500).json({ message: "Terjadi kesalahan internal server." });
+    }
+};
+// GET user history
+exports.getUserHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const history = await Riwayat.find({ user_id: userId }).sort({ tanggal: -1 });
+        res.status(200).json({ data: history });
+    } catch (error) {
+        console.error("Error mengambil riwayat:", error);
+        res.status(500).json({ message: "Gagal mengambil riwayat diagnosis." });
+    }
+};
+
+// DELETE user history
+exports.clearUserHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        await Riwayat.deleteMany({ user_id: userId });
+        res.status(200).json({ message: "Riwayat berhasil dibersihkan." });
+    } catch (error) {
+        console.error("Error membersihkan riwayat:", error);
+        res.status(500).json({ message: "Gagal membersihkan riwayat diagnosis." });
     }
 };

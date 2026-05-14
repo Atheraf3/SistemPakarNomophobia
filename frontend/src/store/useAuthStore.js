@@ -59,6 +59,8 @@ export const useAuthStore = create(
           set({ user: null, isAuthenticated: false, role: null });
         }
       },
+
+      setUser: (user) => set({ user }),
     }),
     {
       name: 'auth-storage', // key in localStorage
