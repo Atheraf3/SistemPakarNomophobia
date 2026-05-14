@@ -526,17 +526,18 @@ export default function DiagnosisPage() {
                     </div>
 
                     {/* Navigation Footer */}
-                    <div className="flex flex-col-reverse sm:flex-row gap-3 px-4 md:px-5 pb-5 pt-1 border-t border-slate-100">
+                    <div className="flex flex-row justify-between gap-2 px-4 md:px-5 pb-5 pt-1 border-t border-slate-100">
                       <Button
                         variant="outline"
-                        className="w-full sm:w-auto gap-2 rounded-xl cursor-pointer"
+                        className="w-auto gap-1 sm:gap-2 rounded-xl cursor-pointer"
                         disabled={currentStep === 0}
                         onClick={handlePrev}
                       >
-                        <ChevronLeft size={16} /> Sebelumnya
+                        <ChevronLeft size={16} /> <span className="hidden sm:inline">Sebelumnya</span><span className="sm:hidden">Kembali</span>
                       </Button>
+                      
                       <Button
-                        className={`w-full sm:w-auto gap-2 rounded-xl flex-1 sm:flex-none font-semibold cursor-pointer
+                        className={`w-auto gap-1 sm:gap-2 rounded-xl font-semibold cursor-pointer
                           ${isLast
                             ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                             : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
@@ -545,7 +546,7 @@ export default function DiagnosisPage() {
                         onClick={handleNext}
                       >
                         {isLast ? (
-                          <><CheckCircle2 size={16} /> Selesai & Hitung</>
+                          <><CheckCircle2 size={16} /> <span className="hidden sm:inline">Selesai & Hitung</span><span className="sm:hidden">Selesai</span></>
                         ) : (
                           <>Selanjutnya <ChevronRight size={16} /></>
                         )}

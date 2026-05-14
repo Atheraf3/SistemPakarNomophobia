@@ -142,10 +142,14 @@ export default function ManagePenyakitPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Tingkat Nomophobia</h2>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
-          <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">Tambah Tingkat</Button>
-        </div>
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">
+              Cetak PDF
+            </Button>
+            <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">
+              Tambah Tingkat
+            </Button>
+    </div>
       </div>
       
       <Card>

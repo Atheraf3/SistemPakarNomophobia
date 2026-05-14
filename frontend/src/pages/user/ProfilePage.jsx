@@ -212,15 +212,19 @@ export default function ProfilePage() {
             <p className="text-sm text-blue-800">
               {shareData 
                 ? "Data riwayat Anda sekarang bisa dilihat oleh Admin." 
-                : "Apakah Anda bersedia data riwayat diagnosis ini dilihat oleh Admin?"}
+                : "Apakah Anda bersedia data riwayat diagnosis ini di lihat oleh Admin?"}
             </p>
           </div>
           <Button
-            variant={shareData ? "default" : "outline"}
+            variant="default" 
             onClick={handleToggleShareData}
-            className={shareData ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-green-600 hover:bg-red-700 text-white"}
+            className={
+              shareData 
+                ? "bg-slate-500 hover:bg-slate-600 text-white" 
+                : "bg-green-600 hover:bg-green-700 text-white" 
+            }
           >
-            {shareData ? "Tidak" : "Ya"}
+            {shareData ? "Batalkan Izin" : "Saya Bersedia"}
           </Button>
         </CardContent>
       </Card>

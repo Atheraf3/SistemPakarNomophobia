@@ -62,7 +62,8 @@ const useDiagnosisStore = create(
               headers: token ? { Authorization: `Bearer ${token}` } : {}
             };
 
-            const response = await axios.post('http://localhost:5151/api/diagnosis', { userInputs }, config);
+            const apiUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/diagnosis` : 'http://localhost:5151/api/diagnosis';
+            const response = await axios.post(apiUrl, { userInputs }, config);
             
             set({ diagnosisResult: response.data.data, isLoading: false });
             return response.data.data;

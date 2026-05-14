@@ -5,11 +5,13 @@ import axios from 'axios';
 // Konfigurasi agar browser selalu mengirim cookie HTTP-only
 axios.defaults.withCredentials = true;
 
-// Set default header if token exists in localStorage (useful on hard refresh)
+// Set default header if token exists in localStorage
 const token = localStorage.getItem('token');
 if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
+
+const getApiUrl = (path) => import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}${path}` : `http://localhost:5151/api${path}`;
 
 export const useAuthStore = create(
   persist(
@@ -20,7 +22,7 @@ export const useAuthStore = create(
 
       register: async (name, email, password, age) => {
         try {
-          await axios.post('http://localhost:5151/api/auth/register', { name, email, password, age });
+          await axios.post(getApiUrl('/auth/register'), { name, email, password, age });
           return true;
         } catch (error) {
           console.error("Register failed:", error);
@@ -30,9 +32,7 @@ export const useAuthStore = create(
 
       login: async (email, password) => {
         try {
-          const response = await axios.post('http://localhost:5151/api/auth/login', { email, password });
-          
-          // Response JSON baru: { success: true, message: '...', data: { accessToken, user } }
+          const response = await axios.post(getApiUrl('/auth/login'), { email, password });
           const { accessToken, user } = response.data.data;
           
           if (accessToken) {
@@ -50,7 +50,7 @@ export const useAuthStore = create(
 
       logout: async () => {
         try {
-          await axios.post('http://localhost:5151/api/auth/logout');
+          await axios.post(getApiUrl('/auth/logout'));
         } catch (error) {
           console.error("Logout API failed:", error);
         } finally {

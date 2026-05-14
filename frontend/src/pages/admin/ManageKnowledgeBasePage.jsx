@@ -129,10 +129,10 @@ export default function ManageKnowledgeBasePage() {
           <p className="text-sm text-slate-500 mt-0.5">CF Pakar = MB − MD (dihitung otomatis)</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto flex-wrap">
-          <Button onClick={handleSync} variant="outline" className="w-full md:w-auto" disabled={syncing}>
+          <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
+          <Button onClick={handleSync} variant="default" className="w-full md:w-auto" disabled={syncing}>
             {syncing ? "Menyinkronkan..." : "Sinkron Gejala"}
           </Button>
-          <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
         </div>
       </div>
 
