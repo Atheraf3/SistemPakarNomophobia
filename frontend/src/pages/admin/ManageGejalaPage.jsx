@@ -81,6 +81,25 @@ export default function ManageGejalaPage() {
     }
   };
 
+  const handleToggleActive = async (gejala) => {
+    try {
+      const updatedIsActive = gejala.isActive === false ? true : false;
+      const updateData = {
+        kode_gejala: gejala.kode_gejala,
+        pernyataan: gejala.pernyataan,
+        isActive: updatedIsActive,
+      };
+      await axios.put(`${API_URL}/${gejala._id}`, updateData, { withCredentials: true });
+      toast.success(`Gejala berhasil ${updatedIsActive ? 'diaktifkan' : 'dinonaktifkan'}`);
+      
+      const updatedData = await fetchGejala();
+      setGejalaData(updatedData);
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal mengubah status gejala");
+    }
+  };
+
   const handleDelete = async (id) => {
     toast(
       (t) => (
@@ -171,6 +190,14 @@ export default function ManageGejalaPage() {
                         <TableCell className="font-medium align-top">{item.kode_gejala}</TableCell>
                         <TableCell className="text-justify leading-relaxed">{item.pernyataan}</TableCell>
                         <TableCell className="text-right space-x-2 align-top" data-html2canvas-ignore="true">
+                          <Button 
+                            onClick={() => handleToggleActive(item)} 
+                            variant={item.isActive !== false ? "default" : "outline"} 
+                            className={item.isActive !== false ? "bg-green-500 hover:bg-green-600 text-white" : "text-slate-500"} 
+                            size="sm"
+                          >
+                            Aktif
+                          </Button>
                           <Button onClick={() => handleOpenModal(item)} variant="outline" size="sm">Edit</Button>
                           <Button onClick={() => handleDelete(item._id)} variant="destructive" size="sm">Hapus</Button>
                         </TableCell>

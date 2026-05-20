@@ -45,16 +45,21 @@ exports.createGejala = async (req, res) => {
 // UPDATE
 exports.updateGejala = async (req, res) => {
     try {
-        const { kode_gejala, pernyataan } = req.body;
+        const { kode_gejala, pernyataan, isActive } = req.body;
 
         const existing = await Gejala.findOne({ kode_gejala, _id: { $ne: req.params.id } });
         if (existing) {
             return res.status(400).json({ message: "ID Gejala sudah digunakan." });
         }
 
+        const updateData = { kode_gejala, pernyataan };
+        if (isActive !== undefined) {
+            updateData.isActive = isActive;
+        }
+
         const updated = await Gejala.findByIdAndUpdate(
             req.params.id,
-            { kode_gejala, pernyataan },
+            updateData,
             { new: true, runValidators: true }
         );
 

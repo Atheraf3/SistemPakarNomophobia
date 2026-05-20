@@ -9,7 +9,6 @@ export default function AdminRoute() {
   }
 
   if (role !== "admin") {
-    // Jika bukan admin, lempar ke halaman utama user
     return <Navigate to="/" replace />;
   }
 

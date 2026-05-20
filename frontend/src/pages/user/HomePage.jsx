@@ -90,7 +90,7 @@ export default function HomePage() {
     visible: {
       opacity: 1,
       transition: {
-        delayChildren: 0.5, // Menunda hingga bagian pertama hero muncul
+        delayChildren: 0.5, 
         staggerChildren: 0.15,
       },
     },

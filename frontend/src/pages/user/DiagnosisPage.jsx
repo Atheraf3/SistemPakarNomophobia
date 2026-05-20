@@ -163,11 +163,9 @@ function ProgressDots({ total, current, answered }) {
 // Result Screen Component
 function ResultScreen({ result, onReset, levels }) {
   const percentageFloat = parseFloat(result.persentase);
-  // Cari tingkat dari data database berdasarkan batas_min & batas_max
   const matchedLevel = (levels || []).find(
     (l) => percentageFloat >= l.batas_min && percentageFloat <= l.batas_max
   );
-  // Ambil warna dari mapping Frontend berdasarkan nama_tingkat
   const levelName = matchedLevel?.nama_tingkat || result.tingkat_keparahan?.nama_tingkat || "";
   const style = LEVEL_STYLES[levelName] || DEFAULT_STYLE;
   const pdfRef = useRef(null);
@@ -203,21 +201,26 @@ function ResultScreen({ result, onReset, levels }) {
 
         {/* Card Hasil Utama */}
         <Card className={`border-2 ${style.borderColor} ${style.bgColor} overflow-hidden`}>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${style.badgeColor}`}>
+          <CardContent className="p-5 md:p-6 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              
+              {/* Bagian Kiri: Badge Tingkat Keparahan */}
+              <div>
+                <span className={`text-sm md:text-base font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-full ${style.badgeColor}`}>
                   Tingkat: {levelName || "Tidak Diketahui"}
                 </span>
-                <h3 className="text-xl font-extrabold text-slate-900 mt-2">{levelName || "Tidak Diketahui"}</h3>
               </div>
+              
+              {/* Bagian Kanan: Score CF */}
               <div className="text-right shrink-0">
-                <p className="text-3xl font-black text-slate-900">{result.persentase}</p>
-                <p className="text-xs text-slate-500">CF Score</p>
+                <p className="text-3xl md:text-4xl font-black text-slate-900">{result.persentase}</p>
+                <p className="text-xs md:text-sm text-slate-500 font-medium">CF Score</p>
               </div>
+
             </div>
+
             {/* Progress bar */}
-            <div className="w-full bg-white/70 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-white/70 rounded-full h-3 md:h-4 overflow-hidden mt-2">
               <Motion.div
                 className={`h-full rounded-full ${style.barColor}`}
                 initial={{ width: 0 }}
@@ -242,9 +245,12 @@ function ResultScreen({ result, onReset, levels }) {
           </Card>
         )}
 
-        {/* Teks Statis Psikolog */}
-        <div className="mt-8 pt-4 border-t border-slate-200 text-center">
-          <p className="text-slate-600 font-medium">Untuk konsultasi lebih lanjut, silakan hubungi psikolog ahli.</p>
+        {/* Disclaimer / Peringatan */}
+        <div className="p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-start sm:items-center gap-2.5 sm:gap-3">
+          <AlertCircle className="text-slate-500 shrink-0 mt-0.5 sm:mt-0" size={18} />
+          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+            Sistem pakar ini memberikan indikasi awal. Untuk diagnosis medis dan penanganan lebih lanjut, silakan hubungi psikolog ahli.
+          </p>
         </div>
       </div>
 
@@ -273,25 +279,19 @@ export default function DiagnosisPage() {
   const [gejalaLoading, setGejalaLoading] = useState(true);
   const [gejalaError, setGejalaError] = useState(false);
 
-  // Ambil actions dari store
   const { submitDiagnosisToBackend, diagnosisResult, error, resetDiagnosis } = useDiagnosisStore();
 
   const topRef = useRef(null);
 
-  // Fetch gejala dan config dari API secara bersamaan
   useEffect(() => {
     let isMounted = true;
 
-    async function initData() {
+    const fetchGejala = async () => {
       try {
-        const [resGejala, resConfig] = await Promise.all([
-          axios.get(GEJALA_API),
-          axios.get(CONFIG_API)
-        ]);
+        const res = await axios.get(GEJALA_API);
         if (isMounted) {
-          setGejalaList(resGejala.data.data);
-          setCfOptions(resConfig.data.data.cfOptions);
-          setLevels(resConfig.data.data.levels);
+          const activeGejala = res.data.data.filter(g => g.isActive !== false);
+          setGejalaList(activeGejala);
           setGejalaLoading(false);
         }
       } catch {
@@ -300,9 +300,23 @@ export default function DiagnosisPage() {
           setGejalaLoading(false);
         }
       }
-    }
+    };
 
-    initData();
+    const fetchConfig = async () => {
+      try {
+        const res = await axios.get(CONFIG_API);
+        if (isMounted) {
+          setCfOptions(res.data.data.cfOptions);
+          setLevels(res.data.data.levels);
+        }
+      } catch (error) {
+        console.error("Gagal memuat data konfigurasi:", error);
+      }
+    };
+
+    fetchGejala();
+    fetchConfig();
+
     return () => { isMounted = false; };
   }, []);
 
@@ -344,11 +358,9 @@ export default function DiagnosisPage() {
       setSelectedOption(answers[nextStep] ?? null);
       scrollToTop();
     } else {
-      // Submit ke Backend
       setPhase(PHASE.LOADING);
       scrollToTop();
 
-      // Build answers map: { gejalaId: cfValue }
       const mappedAnswers = {};
       gejalaList.forEach((g, i) => {
         if (answers[i] !== undefined) mappedAnswers[g.kode_gejala] = answers[i];
@@ -377,7 +389,6 @@ export default function DiagnosisPage() {
   const canGoNext = currentAnswer !== undefined || selectedOption !== null;
   const isLast = currentStep === total - 1;
 
-  // Jika gejala masih loading tampilkan skeleton
   if (gejalaLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -483,9 +494,14 @@ export default function DiagnosisPage() {
 
                     {/* Options */}
                     <div className="p-4 md:p-5 space-y-2.5">
-                      {cfOptions.map((opt) => {
-                        const active = (answers[currentStep] ?? selectedOption) === opt.value;
-                        return (
+                      {cfOptions.length === 0 ? (
+                        <div className="text-center text-sm text-slate-400 py-4 animate-pulse">
+                          Menyiapkan pilihan jawaban...
+                        </div>
+                      ) : (
+                        cfOptions.map((opt) => {
+                          const active = (answers[currentStep] ?? selectedOption) === opt.value;
+                          return (
                           <Motion.button
                             key={opt.value}
                             whileHover={{ scale: 1.01 }}
@@ -522,7 +538,8 @@ export default function DiagnosisPage() {
 
                           </Motion.button>
                         );
-                      })}
+                        })
+                      )}
                     </div>
 
                     {/* Navigation Footer */}

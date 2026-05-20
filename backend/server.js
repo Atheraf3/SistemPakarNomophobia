@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./src/config/db');
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
+const corsOptions = require('./src/config/corsOptions');
 
 // Load environment variables
 dotenv.config();
@@ -20,9 +21,10 @@ const app = express();
 app.use(helmet());
 
 // Logging
-if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
 }
+
 
 // Rate limiting
 const limiter = rateLimit({
@@ -32,23 +34,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Basic Middlewares
-const allowedOrigins = [
-    'http://localhost:5173',
-    'https://sikar-nmp.vercel.app',
-    ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(o => o.trim()) : []),
-];
-
-app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, curl, Postman)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(new Error(`CORS: Origin '${origin}' not allowed`));
-    },
-    credentials: true,
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 

@@ -33,7 +33,7 @@ export default function PwaInstallPrompt() {
         <div className="pr-4">
           <h3 className="font-bold text-slate-900 text-lg">Install Aplikasi SIKAR</h3>
           <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-            Install aplikasi ini di layar utama agar lebih cepat diakses tanpa harus membuka browser lagi.
+            Install aplikasi ini di layar utama agar lebih cepat diakses.
           </p>
         </div>
         <button onClick={() => setIsVisible(false)} className="text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full p-1">

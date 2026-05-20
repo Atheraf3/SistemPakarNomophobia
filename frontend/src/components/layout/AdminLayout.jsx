@@ -21,8 +21,8 @@ function AdminLayout() {
     { to: "/admin/knowledge-base", label: "Knowledge Base (CF Pakar)" },
     { to: "/admin/penyakit", label: "Kelola Tingkat" },
     { to: "/admin/solusi", label: "Kelola Solusi" },
+    { to: "/admin/cf-options", label: "Kelola CF Options User" },
     { to: "/admin/users", label: "Kelola Users" },
-    { to: "/admin/cf-options", label: "Kelola CF Options" },
   ];
 
   // Render helper function untuk memisahkan Sidebar

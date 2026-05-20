@@ -27,49 +27,59 @@ exports.diagnose = async (req, res) => {
             return res.status(403).json({ message: "Kuota diagnosis Anda telah habis." });
         }
 
+        // 1. Ambil basis pengetahuan dari database (hanya yang sudah memiliki CF Pakar)
         const kbData = await KnowledgeBase.find({ cf_pakar: { $ne: null } });
 
         if (!kbData || kbData.length === 0) {
             return res.status(500).json({ message: "Basis pengetahuan (CF Pakar) belum dikonfigurasi oleh admin." });
         }
 
-        const knowledgeBase = kbData.map(kb => ({
-            kode_gejala: kb.kode_gejala,
-            cfPakar: kb.cf_pakar
-        }));
+        // 2. Gabungkan jawaban user dengan bobot pakar dari KB
+        // Menghasilkan format: [{ symptomId, userCF, expertCF }]
+        const symptoms = userInputs.map((input) => {
+            const kbItem = kbData.find((kb) => kb.kode_gejala === input.gejalaId);
+            return {
+                symptomId: input.gejalaId,
+                userCF: input.cfUser,
+                expertCF: kbItem ? kbItem.cf_pakar : null,
+            };
+        });
 
-        // 2. Hitung CF
-        const totalCf = calculateCertaintyFactor(userInputs, knowledgeBase);
+        // 3. Hitung CF menggunakan Inference Engine
+        // Mengembalikan: { finalCF, percentage, category }
+        const cfResult = calculateCertaintyFactor(symptoms);
 
+        // 4. Cocokkan persentase dengan tingkat keparahan dari database
         const tingkatData = await TingkatPenyakit.find({}).sort({ batas_min: 1 });
         
         if (!tingkatData || tingkatData.length === 0) {
             return res.status(500).json({ message: "Data Tingkat Penyakit belum dikonfigurasi di sistem." });
         }
 
-        const hasilTingkat = determineSeverityLevel(totalCf, tingkatData);
+        // determineSeverityLevel kini menerima percentage (0-100), bukan desimal
+        const hasilTingkat = determineSeverityLevel(cfResult.percentage, tingkatData);
 
-        // 4. Simpan Riwayat
+        // 5. Simpan Riwayat ke database
         const riwayat = new Riwayat({
             user_id: user._id,
             detail_jawaban_user: userInputs,
-            nilai_cf_akhir: totalCf,
-            tingkat_keparahan: hasilTingkat ? hasilTingkat.nama_tingkat : "Tidak Diketahui"
+            nilai_cf_akhir: cfResult.finalCF,
+            tingkat_keparahan: hasilTingkat ? hasilTingkat.nama_tingkat : cfResult.category
         });
         await riwayat.save();
 
-        // 5. Potong kuota user - 1 (Hanya jika bukan admin)
+        // 6. Kurangi kuota user (kecuali admin)
         if (user.role !== 'admin') {
             user.quota -= 1;
             await user.save();
         }
 
-        // 6. Kembalikan hasil akhir
+        // 7. Kembalikan hasil akhir ke frontend
         return res.status(200).json({
             message: "Diagnosis berhasil dilakukan.",
             data: {
-                nilai_cf: totalCf,
-                persentase: (totalCf * 100).toFixed(2) + "%",
+                nilai_cf: cfResult.finalCF,
+                persentase: cfResult.percentage.toFixed(2) + "%",
                 tingkat_keparahan: hasilTingkat,
                 sisa_kuota: user.role === 'admin' ? "Unlimited" : user.quota,
                 riwayat_id: riwayat._id
