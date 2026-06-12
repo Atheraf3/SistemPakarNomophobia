@@ -1,0 +1,463 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Sistem Pakar Nomophobia",
+    "description": "Dokumentasi REST API untuk Sistem Pakar Diagnosa Nomophobia berbasis Certainty Factor (CF). Gunakan endpoint `/api/auth/login` untuk mendapatkan access token, lalu klik tombol **Authorize** dan masukkan token dalam format `Bearer <token>`.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Developer",
+      "email": "developer@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5151",
+      "description": "Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Masukkan JWT token yang diperoleh dari endpoint `/api/auth/login`."
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "password123"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "johndoe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "example": "password123"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "_id": { "type": "string", "example": "64f1a2b3c4d5e6f7a8b9c0d1" },
+              "name": { "type": "string", "example": "John Doe" },
+              "email": { "type": "string", "example": "johndoe@example.com" },
+              "role": { "type": "string", "enum": ["user", "admin"], "example": "user" }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "Pesan error" }
+        }
+      },
+      "Gejala": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "64f1a2b3c4d5e6f7a8b9c0d1" },
+          "kode": { "type": "string", "example": "G01" },
+          "nama": { "type": "string", "example": "Merasa cemas ketika tidak membawa handphone" },
+          "isActive": { "type": "boolean", "example": true }
+        }
+      },
+      "Tingkat": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "64f1a2b3c4d5e6f7a8b9c0d2" },
+          "kode": { "type": "string", "example": "T01" },
+          "nama": { "type": "string", "example": "Nomophobia Ringan" },
+          "deskripsi": { "type": "string", "example": "Tingkat nomophobia ringan." },
+          "cfMin": { "type": "number", "example": 0.0 },
+          "cfMax": { "type": "number", "example": 0.4 }
+        }
+      },
+      "DiagnosisRequest": {
+        "type": "object",
+        "required": ["gejala"],
+        "properties": {
+          "gejala": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "gejalaId": { "type": "string", "example": "64f1a2b3c4d5e6f7a8b9c0d1" },
+                "cfUser": { "type": "number", "example": 0.8 }
+              }
+            }
+          }
+        }
+      },
+      "DiagnosisResult": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "cfTotal": { "type": "number", "example": 0.72 },
+          "tingkat": { "$ref": "#/components/schemas/Tingkat" },
+          "rekomendasi": { "type": "string", "example": "Sebaiknya mulai membatasi penggunaan handphone." }
+        }
+      }
+    }
+  },
+  "security": [],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login pengguna",
+        "description": "Mengautentikasi pengguna dan mengembalikan JWT access token serta refresh token (via HttpOnly cookie).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login berhasil",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validasi gagal / kredensial salah",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Registrasi pengguna baru",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrasi berhasil",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validasi gagal / email sudah digunakan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout pengguna",
+        "description": "Menghapus refresh token dari HttpOnly cookie.",
+        "responses": {
+          "200": {
+            "description": "Logout berhasil"
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Refresh access token",
+        "description": "Menghasilkan access token baru menggunakan refresh token dari cookie.",
+        "responses": {
+          "200": {
+            "description": "Token baru berhasil dibuat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token tidak valid atau kadaluarsa",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/profile": {
+      "put": {
+        "tags": ["Auth"],
+        "summary": "Update profil pengguna",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Nama Baru" },
+                  "age": { "type": "number", "example": 22 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profil berhasil diperbarui" },
+          "401": { "description": "Tidak terautentikasi" }
+        }
+      }
+    },
+    "/api/auth/users": {
+      "get": {
+        "tags": ["Auth (Admin)"],
+        "summary": "Dapatkan semua pengguna",
+        "description": "Hanya dapat diakses oleh admin.",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Daftar semua pengguna" },
+          "403": { "description": "Akses ditolak" }
+        }
+      }
+    },
+    "/api/auth/admin/stats": {
+      "get": {
+        "tags": ["Auth (Admin)"],
+        "summary": "Statistik admin",
+        "description": "Mengembalikan statistik sistem. Hanya untuk admin.",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Data statistik berhasil diambil" },
+          "403": { "description": "Akses ditolak" }
+        }
+      }
+    },
+    "/api/gejala": {
+      "get": {
+        "tags": ["Gejala"],
+        "summary": "Dapatkan semua gejala",
+        "responses": {
+          "200": {
+            "description": "Daftar semua gejala",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Gejala" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Gejala"],
+        "summary": "Tambah gejala baru",
+        "description": "Hanya admin.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Gejala" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Gejala berhasil ditambahkan" },
+          "403": { "description": "Akses ditolak" }
+        }
+      }
+    },
+    "/api/gejala/{id}": {
+      "get": {
+        "tags": ["Gejala"],
+        "summary": "Dapatkan gejala berdasarkan ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Data gejala ditemukan", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Gejala" } } } },
+          "404": { "description": "Gejala tidak ditemukan" }
+        }
+      },
+      "put": {
+        "tags": ["Gejala"],
+        "summary": "Update gejala",
+        "description": "Hanya admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Gejala" } } }
+        },
+        "responses": {
+          "200": { "description": "Gejala berhasil diperbarui" },
+          "403": { "description": "Akses ditolak" }
+        }
+      },
+      "delete": {
+        "tags": ["Gejala"],
+        "summary": "Hapus gejala",
+        "description": "Hanya admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Gejala berhasil dihapus" },
+          "403": { "description": "Akses ditolak" }
+        }
+      }
+    },
+    "/api/tingkat": {
+      "get": {
+        "tags": ["Tingkat Nomophobia"],
+        "summary": "Dapatkan semua tingkat nomophobia",
+        "responses": {
+          "200": {
+            "description": "Daftar tingkat nomophobia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Tingkat" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/diagnosis": {
+      "post": {
+        "tags": ["Diagnosis"],
+        "summary": "Jalankan proses diagnosis",
+        "description": "Menerima input gejala dan nilai CF dari pengguna, lalu mengembalikan hasil diagnosa tingkat nomophobia.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DiagnosisRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hasil diagnosis berhasil dihitung",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DiagnosisResult" }
+              }
+            }
+          },
+          "400": { "description": "Input tidak valid" },
+          "401": { "description": "Tidak terautentikasi" }
+        }
+      }
+    },
+    "/api/knowledge-base": {
+      "get": {
+        "tags": ["Knowledge Base"],
+        "summary": "Dapatkan seluruh knowledge base",
+        "description": "Relasi antara gejala dan tingkat nomophobia beserta nilai CF pakar.",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Data knowledge base berhasil diambil" }
+        }
+      }
+    },
+    "/api/config": {
+      "get": {
+        "tags": ["Config"],
+        "summary": "Dapatkan konfigurasi sistem",
+        "responses": {
+          "200": { "description": "Konfigurasi sistem berhasil diambil" }
+        }
+      }
+    },
+    "/api/cf-options": {
+      "get": {
+        "tags": ["CF Options"],
+        "summary": "Dapatkan pilihan nilai Certainty Factor (CF)",
+        "responses": {
+          "200": { "description": "Daftar pilihan CF berhasil diambil" }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Auth", "description": "Autentikasi pengguna (login, register, logout, refresh token)" },
+    { "name": "Auth (Admin)", "description": "Endpoint admin untuk manajemen pengguna" },
+    { "name": "Gejala", "description": "Manajemen data gejala nomophobia" },
+    { "name": "Tingkat Nomophobia", "description": "Manajemen tingkat keparahan nomophobia" },
+    { "name": "Diagnosis", "description": "Proses diagnosa menggunakan metode Certainty Factor" },
+    { "name": "Knowledge Base", "description": "Basis pengetahuan pakar (relasi gejala-tingkat)" },
+    { "name": "Config", "description": "Konfigurasi sistem" },
+    { "name": "CF Options", "description": "Pilihan nilai Certainty Factor untuk input pengguna" }
+  ]
+}

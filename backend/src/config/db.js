@@ -1,26 +1,20 @@
-const mongoose = require('mongoose');
 const dns = require('dns');
+const mongoose = require('mongoose');
+
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 const connectDB = async () => {
-    try {
-        const mongoUri = process.env.MONGO_URI;
-        
-        if (mongoUri && mongoUri.includes('+srv')) {
-            dns.setDefaultResultOrder('ipv4first');
-            dns.setServers(['8.8.8.8', '1.1.1.1']);
-        }
-
-        const conn = await mongoose.connect(mongoUri, {
-            serverSelectionTimeoutMS: 10000, 
-        });
-
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-        console.error(`MongoDB Connection Error: ${error.message}`);
-        if (process.env.NODE_ENV !== 'production') {
-            process.exit(1);
-        }
+  try {
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI belum terbaca dari file .env');
     }
+
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('Berhasil konek ke MongoDB');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  }
 };
 
 module.exports = connectDB;

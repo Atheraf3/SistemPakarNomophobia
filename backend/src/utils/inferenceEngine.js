@@ -32,7 +32,7 @@
 function calculateCertaintyFactor(symptoms) {
   // ── Validasi Input ──────────────────────────────────────────────────────────
   if (!symptoms || symptoms.length === 0) {
-    return { finalCF: 0, percentage: 0, category: classifyByPercentage(0) };
+    return { finalCF: 0, percentage: 0, category: "Tidak Diketahui" };
   }
 
   // ── Langkah 1: Hitung CF(H,E) untuk setiap gejala ──────────────────────────
@@ -49,7 +49,7 @@ function calculateCertaintyFactor(symptoms) {
     .filter((cf) => cf > 0); // Hanya CF positif yang berkontribusi pada diagnosis
 
   if (cfPerSymptom.length === 0) {
-    return { finalCF: 0, percentage: 0, category: classifyByPercentage(0) };
+    return { finalCF: 0, percentage: 0, category: "Tidak Diketahui" };
   }
 
   // ── Langkah 2: Kombinasi Seluruh CF (Similarly Concluded Rules) ─────────────
@@ -57,7 +57,7 @@ function calculateCertaintyFactor(symptoms) {
   if (cfPerSymptom.length === 1) {
     const finalCF = parseFloat(cfPerSymptom[0].toFixed(4));
     const percentage = parseFloat((finalCF * 100).toFixed(2));
-    return { finalCF, percentage, category: classifyByPercentage(percentage) };
+    return { finalCF, percentage, category: "Tidak Diketahui" };
   }
 
   // Kombinasi iteratif menggunakan rumus Similarly Concluded Rules:
@@ -85,41 +85,10 @@ function calculateCertaintyFactor(symptoms) {
   const finalCF = parseFloat(cfCombined.toFixed(4));
   const percentage = parseFloat((finalCF * 100).toFixed(2));
 
-  // ── Langkah 4: Klasifikasi Tingkat Keparahan ────────────────────────────────
-  const category = classifyByPercentage(percentage);
-
-  return { finalCF, percentage, category };
-}
-
-/**
- * Mengklasifikasikan tingkat keparahan Nomophobia berdasarkan skor persentase CF.
- *
- * Threshold ini digunakan sebagai FALLBACK statis jika data TingkatPenyakit
- * dari database tidak tersedia. Nilai utama tetap diambil dari MongoDB
- * melalui fungsi determineSeverityLevel().
- *
- * Referensi threshold (dapat dimodifikasi):
- *   0%  – 20% : Tidak Nomophobia
- *   21% – 40% : Nomophobia Ringan
- *   41% – 60% : Nomophobia Sedang
- *   61% – 80% : Nomophobia Berat
- *   81% – 100%: Nomophobia Akut
- *
- * @param {number} percentage - Skor CF dalam persentase (0–100)
- * @returns {string} Kategori tingkat keparahan
- */
-function classifyByPercentage(percentage) {
-  // Threshold didefinisikan eksplisit agar mudah dimodifikasi saat sidang skripsi
-  const THRESHOLDS = [
-    { min: 0,  max: 20,  label: "Tidak Nomophobia"  },
-    { min: 21, max: 40,  label: "Nomophobia Ringan"  },
-    { min: 41, max: 60,  label: "Nomophobia Sedang"  },
-    { min: 61, max: 80,  label: "Nomophobia Berat"   },
-    { min: 81, max: 100, label: "Nomophobia Akut"    },
-  ];
-
-  const match = THRESHOLDS.find((t) => percentage >= t.min && percentage <= t.max);
-  return match ? match.label : "Tidak Diketahui";
+  // ── Langkah 4: Klasifikasi ─────────────────────────────────────────────────
+  // Kategori aktual ditentukan oleh determineSeverityLevel() dari data DB.
+  // Nilai "Tidak Diketahui" di sini hanya placeholder sebelum lookup DB dilakukan.
+  return { finalCF, percentage, category: "Tidak Diketahui" };
 }
 
 /**
@@ -163,6 +132,5 @@ function determineSeverityLevel(percentage, tingkatData) {
 
 module.exports = {
   calculateCertaintyFactor,
-  classifyByPercentage,
   determineSeverityLevel,
 };

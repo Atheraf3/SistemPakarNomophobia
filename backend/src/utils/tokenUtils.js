@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// Generate Access Token 
+// Generate Access Token
 const generateAccessToken = (userId, role) => {
     return jwt.sign(
         { id: userId, role },

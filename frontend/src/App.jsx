@@ -7,9 +7,9 @@ function App() {
     <>
       <RouterProvider router={router} />
       <Toaster
-        position="top-right"
+        position="top-center"
         toastOptions={{
-          duration: 4000,
+          duration: 2000,
           style: {
             borderRadius: "10px",
             fontFamily: "inherit",

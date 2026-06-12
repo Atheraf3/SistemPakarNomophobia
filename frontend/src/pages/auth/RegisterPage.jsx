@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 
 
@@ -27,10 +28,11 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await register(name, email, password);
-      alert("Registrasi berhasil. Silakan login.");
+      toast.success("Registrasi berhasil. Silakan login.");
       navigate("/login");
     } catch (error) {
-      setError(error.response?.data?.message || "Registrasi gagal. Coba lagi.");
+      console.log(error);
+      toast.error("Registrasi gagal. Coba lagi.");
     } finally {
       setIsLoading(false);
     }

@@ -5,45 +5,51 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./src/config/swagger.json');
 const connectDB = require('./src/config/db');
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
 const corsOptions = require('./src/config/corsOptions');
 
-// Load environment variables
+//dotenv
 dotenv.config();
-
-// Connect to Database
-connectDB();
-
 const app = express();
+const PORT = process.env.PORT;
 
-// Security middlewares
+//helmet
 app.use(helmet());
 
-// Logging
+//morgan
 if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
 }
 
-
-// Rate limiting
+//rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 100 
 });
-app.use('/api/', limiter);
+app.use('/api/', limiter); 
 
-// Basic Middlewares
 app.use(cors(corsOptions));
+
+//body parser
 app.use(express.json());
 app.use(cookieParser());
 
-// Basic route
-app.get('/', (req, res) => {
-    res.send('API is running...');
-});
+//swagger
+app.use(
+    '/api-docs',
+    helmet({ contentSecurityPolicy: false }),
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, {
+        customSiteTitle: 'API Sistem Pakar Nomophobia',
+        swaggerOptions: { persistAuthorization: true },
+    })
+);
 
-// API Routes
+//routes
+app.get('/', (req, res) => res.send('API is running'));
 app.use('/api/diagnosis', require('./src/routes/diagnosisRoutes'));
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/tingkat', require('./src/routes/tingkatRoutes'));
@@ -52,11 +58,13 @@ app.use('/api/knowledge-base', require('./src/routes/knowledgeBaseRoutes'));
 app.use('/api/config', require('./src/routes/configRoutes'));
 app.use('/api/cf-options', require('./src/routes/cfOptionRoutes'));
 
-// Error Middleware
+//error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5151;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+//connect db
+connectDB().then(() => {
+    //start server
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}); 
