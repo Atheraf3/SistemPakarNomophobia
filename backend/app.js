@@ -62,9 +62,13 @@ app.use('/api/cf-options', require('./src/routes/cfOptionRoutes'));
 app.use(errorHandler);
 
 //connect db
-connectDB().then(() => {
-    //start server
+connectDB();
+
+//start server
+if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
-}); 
+}
+
+module.exports = app;
