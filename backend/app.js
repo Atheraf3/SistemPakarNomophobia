@@ -45,6 +45,11 @@ app.use(
     swaggerUi.setup(swaggerDocument, {
         customSiteTitle: 'API Sistem Pakar Nomophobia',
         swaggerOptions: { persistAuthorization: true },
+        customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
+        customJs: [
+            'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js',
+        ]
     })
 );
 
