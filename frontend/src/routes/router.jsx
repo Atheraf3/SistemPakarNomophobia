@@ -50,7 +50,6 @@ export const router = createBrowserRouter([
         path: "about",
         element: <AboutPage />,
       },
-      // Harus Login untuk kuesioner dan riwayat
       {
         element: <ProtectedRoute />,
         children: [
@@ -78,7 +77,6 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            // Secara default arahkan ke dashboard jika route /admin dipukul
             element: <DashboardPage />,
           },
           {

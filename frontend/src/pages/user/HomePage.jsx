@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Smartphone, Globe, MousePointerClick, Clock, BookOpen, Activity, ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react";
 import { motion as Motion, useInView, animate } from "framer-motion";
 
-// Komponen untuk animasi Angka (Counter) dari 0 ke target
+// Animasi Counter
 function AnimatedCounter({ from = 0, to, suffix = "", duration = 2.5 }) {
   const nodeRef = useRef(null);
   const inView = useInView(nodeRef, { once: true, margin: "-50px" });
@@ -28,7 +28,7 @@ function AnimatedCounter({ from = 0, to, suffix = "", duration = 2.5 }) {
   return <span ref={nodeRef}>{from}{suffix}</span>;
 }
 
-// Komponen untuk efek ketik (Typewriter)
+// Efek Typewriter
 function TypewriterText({ text }) {
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -39,7 +39,6 @@ function TypewriterText({ text }) {
         if (displayText.length < text.length) {
           setDisplayText(text.slice(0, displayText.length + 1));
         } else {
-          // Tunggu sebentar sebelum mulai menghapus
           setTimeout(() => setIsDeleting(true), 3000);
         }
       } else {
@@ -49,7 +48,7 @@ function TypewriterText({ text }) {
           setIsDeleting(false);
         }
       }
-    }, isDeleting ? 100 : 200); // Lebih cepat saat menghapus
+    }, isDeleting ? 100 : 200);
 
     return () => clearTimeout(timeout);
   }, [displayText, isDeleting, text]);
@@ -63,7 +62,7 @@ function TypewriterText({ text }) {
 }
 
 export default function HomePage() {
-  // Animasi untuk Container (mengatur staggering beruntun)
+  // Animasi Container
   const heroVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -74,7 +73,7 @@ export default function HomePage() {
     },
   };
 
-  // Animasi per elemen (fade up)
+  // Animasi elemen fade up
   const itemFadeUp = {
     hidden: { opacity: 0, y: 30 },
     visible: { 
@@ -84,7 +83,7 @@ export default function HomePage() {
     },
   };
 
-  // Animasi untuk Grid Statistik yang muncul setelah hero
+  // Animasi Grid Statistik
   const gridVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -111,7 +110,7 @@ export default function HomePage() {
             <Motion.span 
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-              className="inline-flex items-center rounded-full bg-blue-100/80 px-4 py-1.5 text-sm font-semibold text-blue-700 border border-blue-200 backdrop-blur-sm shadow-sm"
+              className="inline-flex items-center rounded-full bg-orange-500 px-4 py-1.5 text-sm font-semibold text-white border border-orange-200 backdrop-blur-sm shadow-sm"
             >
               Sistem Pakar Deteksi Dini
             </Motion.span>

@@ -22,7 +22,7 @@ const PROFILE_API = import.meta.env.VITE_API_URL
 
 
 export default function ProfilePage() {
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, fetchProfile } = useAuthStore();
   const [historyData, setHistoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [shareData, setShareData] = useState(user?.shareData ?? false);
@@ -33,6 +33,10 @@ export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({ name: "", age: "" });
   const [updating, setUpdating] = useState(false);
+
+  // Modal Detail Riwayat
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState(null);
 
   const totalPages = Math.ceil(historyData.length / itemsPerPage);
   const currentHistoryData = historyData.slice(
@@ -70,11 +74,12 @@ export default function ProfilePage() {
     }
 
     startFetching();
+    fetchProfile();
 
     return () => {
       ignore = true;
     };
-  }, [fetchHistory]);
+  }, [fetchHistory, fetchProfile]);
 
   const handleToggleShareData = async () => {
     const newValue = !shareData;
@@ -195,7 +200,6 @@ export default function ProfilePage() {
           
           <div className="pt-4 flex justify-end gap-2">
             <Button variant="outline" onClick={openEditModal}>Edit Profil</Button>
-            <Button variant="destructive">Hapus Akun</Button>
           </div>
         </CardContent>
       </Card>
@@ -252,7 +256,7 @@ export default function ProfilePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tanggal</TableHead>
-                  <TableHead>Tingkat (Konklusi)</TableHead>
+                  <TableHead>Tingkat</TableHead>
                   <TableHead>Nilai CF (%)</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
@@ -272,7 +276,7 @@ export default function ProfilePage() {
                     <TableCell className="font-medium text-slate-900">{item.tingkat_keparahan}</TableCell>
                     <TableCell>{(item.nilai_cf_akhir * 100).toFixed(2)}%</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="link" size="sm">Lihat Detail</Button>
+                      <Button variant="link" size="sm" onClick={() => { setSelectedHistory(item); setIsDetailModalOpen(true); }}>Lihat Detail</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -314,7 +318,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Edit Profile Modal (Custom) */}
+      {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl border border-slate-200">
@@ -353,6 +357,64 @@ export default function ProfilePage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Detail Riwayat */}
+      {isDetailModalOpen && selectedHistory && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-xl p-5 w-full max-w-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200 max-h-[70vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Detail Riwayat Diagnosis</h3>
+            
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-3 border-b pb-2">
+                <span className="text-slate-500 font-medium">Tanggal</span>
+                <span className="col-span-2 font-semibold">
+                  {new Date(selectedHistory.tanggal).toLocaleString('id-ID', {
+                    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                  })}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 border-b pb-2">
+                <span className="text-slate-500 font-medium">Tingkat Keparahan</span>
+                <span className="col-span-2 font-bold text-black-600">{selectedHistory.tingkat_keparahan}</span>
+              </div>
+              <div className="grid grid-cols-3 border-b pb-2">
+                <span className="text-slate-500 font-medium">Nilai CF Akhir</span>
+                <span className="col-span-2 font-semibold">{(selectedHistory.nilai_cf_akhir * 100).toFixed(2)}%</span>
+              </div>
+            </div>
+
+            <h4 className="font-bold text-slate-800 mb-3">Detail Jawaban Anda:</h4>
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader className="bg-slate-50">
+                  <TableRow>
+                    <TableHead className="w-[100px]">Kode Gejala</TableHead>
+                    <TableHead>Bobot Jawaban (CF User)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedHistory.detail_jawaban_user && selectedHistory.detail_jawaban_user.length > 0 ? (
+                    selectedHistory.detail_jawaban_user.map((jawaban, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium text-slate-700">{jawaban.gejalaId}</TableCell>
+                        <TableCell>{jawaban.cfUser}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-slate-500 py-4">Data detail tidak tersedia.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>
+            </div>
           </div>
         </div>
       )}

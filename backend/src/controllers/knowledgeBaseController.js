@@ -4,7 +4,28 @@ const Gejala = require('../models/Gejala');
 // GET all knowledge base entries
 exports.getAllKB = async (req, res) => {
     try {
-        const kb = await KnowledgeBase.find({}).sort({ kode_gejala: 1 });
+        const kb = await KnowledgeBase.aggregate([
+            {
+                $lookup: {
+                    from: "gejalas",
+                    localField: "kode_gejala",
+                    foreignField: "kode_gejala",
+                    as: "gejala_info"
+                }
+            },
+            {
+                $unwind: { path: "$gejala_info", preserveNullAndEmptyArrays: true }
+            },
+            {
+                $addFields: { isActive: { $ifNull: ["$gejala_info.isActive", true] } }
+            },
+            {
+                $project: { gejala_info: 0 }
+            },
+            {
+                $sort: { kode_gejala: 1 }
+            }
+        ]);
         res.status(200).json({ data: kb });
     } catch (error) {
         console.error(error);
@@ -34,7 +55,7 @@ exports.syncKBWithGejala = async (req, res) => {
     }
 };
 
-// UPDATE nilai MB dan MD (cf_pakar otomatis dihitung di controller)
+// UPDATE nilai MB dan MD
 exports.updateKB = async (req, res) => {
     try {
         const { mb, md } = req.body;
@@ -49,7 +70,6 @@ exports.updateKB = async (req, res) => {
             return res.status(400).json({ message: "Nilai MB dan MD harus antara 0.0 dan 1.0." });
         }
 
-        // Hitung CF Pakar: MB - MD
         const cf_pakar = parseFloat((mbVal - mdVal).toFixed(4));
 
         const updated = await KnowledgeBase.findByIdAndUpdate(

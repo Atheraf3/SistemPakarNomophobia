@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Riwayat = require('../models/Riwayat');
+const Gejala = require('../models/Gejala');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { generateAccessToken, generateRefreshToken, generateResetToken } = require('../utils/tokenUtils');
@@ -191,11 +193,66 @@ const getAdminStats = async (req, res, next) => {
     try {
         const totalUsers = await User.countDocuments();
         const totalDiagnosis = await Riwayat.countDocuments();
+        const totalGejala = await Gejala.countDocuments({ isActive: true });
+        
+        const avgCfResult = await Riwayat.aggregate([
+            { $group: { _id: null, avgCF: { $avg: "$nilai_cf_akhir" } } }
+        ]);
+        const rataRataCF = avgCfResult.length > 0 ? (avgCfResult[0].avgCF * 100).toFixed(2) + '%' : '0%';
+
+        const kategoriResult = await Riwayat.aggregate([
+            { $group: { _id: "$tingkat_keparahan", count: { $sum: 1 } } }
+        ]);
+        const kategoriDistribution = kategoriResult.reduce((acc, curr) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {
+            "Tidak Nomophobia": 0,
+            "Nomophobia Ringan": 0,
+            "Nomophobia Sedang": 0,
+            "Nomophobia Berat": 0,
+            "Nomophobia Akut": 0
+        });
+
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const trenResult = await Riwayat.aggregate([
+            { $match: { tanggal: { $gte: thirtyDaysAgo } } },
+            { $group: { 
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$tanggal" } },
+                count: { $sum: 1 }
+            }},
+            { $sort: { "_id": 1 } }
+        ]);
+
+        const trenHarian = trenResult.map(r => ({
+            date: r._id,
+            count: r.count
+        }));
+
+        const recentActivitiesRaw = await Riwayat.find()
+            .sort({ tanggal: -1 })
+            .limit(5)
+            .populate('user_id', 'name');
+
+        const recentActivities = recentActivitiesRaw.map(r => ({
+            id: r._id,
+            name: r.user_id ? r.user_id.name : 'Anonim',
+            date: new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+            cf: (r.nilai_cf_akhir * 100).toFixed(2),
+            category: r.tingkat_keparahan
+        }));
         
         res.status(200).json({
             data: {
                 totalUsers,
-                totalDiagnosis
+                totalDiagnosis,
+                totalGejala,
+                rataRataCF,
+                kategoriDistribution,
+                trenHarian,
+                recentActivities
             }
         });
     } catch (error) {
@@ -240,6 +297,57 @@ const getUserHistoryByAdmin = async (req, res, next) => {
         }
         const history = await Riwayat.find({ user_id: req.params.id }).sort({ tanggal: -1 });
         res.status(200).json({ data: history, user: { name: user.name, email: user.email } });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Reset user quota to 3 (Admin only)
+// @route   PUT /api/auth/users/:id/reset-quota
+// @access  Private/Admin
+const resetUserQuota = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            res.status(404);
+            throw new Error('User tidak ditemukan');
+        }
+
+        user.quota = 3;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Kuota berhasil direset menjadi 3',
+            data: { id: user._id, quota: user.quota }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+// @access  Private
+const getProfile = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            res.status(404);
+            throw new Error('User tidak ditemukan');
+        }
+        res.status(200).json({
+            success: true,
+            data: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                quota: user.quota,
+                age: user.age,
+                shareData: user.shareData
+            }
+        });
     } catch (error) {
         next(error);
     }
@@ -290,5 +398,7 @@ module.exports = {
     getAdminStats,
     updateShareData,
     getUserHistoryByAdmin,
-    updateProfile
+    resetUserQuota,
+    updateProfile,
+    getProfile
 };

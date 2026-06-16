@@ -78,7 +78,7 @@ const useDiagnosisStore = create(
         }
       }),
       {
-        name: "diagnosis-storage", // Key untuk localStorage
+        name: "diagnosis-storage",
         partialize: (state) => ({
           selectedSymptoms: state.selectedSymptoms,
           currentStep: state.currentStep,

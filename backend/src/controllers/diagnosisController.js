@@ -27,15 +27,12 @@ exports.diagnose = async (req, res) => {
             return res.status(403).json({ message: "Kuota diagnosis Anda telah habis." });
         }
 
-        // 1. Ambil basis pengetahuan dari database (hanya yang sudah memiliki CF Pakar)
         const kbData = await KnowledgeBase.find({ cf_pakar: { $ne: null } });
 
         if (!kbData || kbData.length === 0) {
             return res.status(500).json({ message: "Basis pengetahuan (CF Pakar) belum dikonfigurasi oleh admin." });
         }
 
-        // 2. Gabungkan jawaban user dengan bobot pakar dari KB
-        // Menghasilkan format: [{ symptomId, userCF, expertCF }]
         const symptoms = userInputs.map((input) => {
             const kbItem = kbData.find((kb) => kb.kode_gejala === input.gejalaId);
             return {
@@ -45,21 +42,16 @@ exports.diagnose = async (req, res) => {
             };
         });
 
-        // 3. Hitung CF menggunakan Inference Engine
-        // Mengembalikan: { finalCF, percentage, category }
         const cfResult = calculateCertaintyFactor(symptoms);
 
-        // 4. Cocokkan persentase dengan tingkat keparahan dari database
         const tingkatData = await TingkatPenyakit.find({}).sort({ batas_min: 1 });
         
         if (!tingkatData || tingkatData.length === 0) {
             return res.status(500).json({ message: "Data Tingkat Penyakit belum dikonfigurasi di sistem." });
         }
 
-        // determineSeverityLevel kini menerima percentage (0-100), bukan desimal
         const hasilTingkat = determineSeverityLevel(cfResult.percentage, tingkatData);
 
-        // 5. Simpan Riwayat ke database
         const riwayat = new Riwayat({
             user_id: user._id,
             detail_jawaban_user: userInputs,
@@ -68,13 +60,10 @@ exports.diagnose = async (req, res) => {
         });
         await riwayat.save();
 
-        // 6. Kurangi kuota user (kecuali admin)
         if (user.role !== 'admin') {
             user.quota -= 1;
             await user.save();
         }
-
-        // 7. Kembalikan hasil akhir ke frontend
         return res.status(200).json({
             message: "Diagnosis berhasil dilakukan.",
             data: {
@@ -91,6 +80,7 @@ exports.diagnose = async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan internal server." });
     }
 };
+
 // GET user history
 exports.getUserHistory = async (req, res) => {
     try {

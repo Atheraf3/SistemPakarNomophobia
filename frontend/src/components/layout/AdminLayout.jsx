@@ -25,7 +25,6 @@ function AdminLayout() {
     { to: "/admin/users", label: "Kelola Users" },
   ];
 
-  // Render helper function untuk memisahkan Sidebar
   const renderSidebar = () => (
     <>
       <div className="h-14 flex items-center justify-center border-b border-slate-700/50 font-bold text-lg text-white">
@@ -76,10 +75,8 @@ function AdminLayout() {
           {/* Mobile Menu Trigger */}
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-6 w-6" />
-                </Button>
+              <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" />}>
+                <Menu className="h-6 w-6" />
               </SheetTrigger>
               <SheetContent side="left" className="p-0 bg-slate-900 border-r-0 w-64 flex flex-col">
                 {/* Aksesibilitas Title & Description (Hidden) */}

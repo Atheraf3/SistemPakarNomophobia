@@ -5,11 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
-import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5151/api";
 const API_URL = `${BASE_URL}/knowledge-base`;
+
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL("image/png");
+      resolve(dataURL);
+    };
+    
+    img.onerror = error => {
+      reject(error);
+    };
+    
+    img.src = url;
+  });
+}
 
 export default function ManageKnowledgeBasePage() {
   const [kbData, setKbData] = useState([]);
@@ -102,16 +126,121 @@ export default function ManageKnowledgeBasePage() {
     }
   };
 
-  const handlePrintPdf = () => {
-    const element = tableRef.current;
-    const opt = {
-      margin: [0.5, 0.5, 0.5, 0.5],
-      filename: "Laporan_Knowledge_Base_CF_Pakar.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "landscape" },
-    };
-    html2pdf().set(opt).from(element).save();
+  const cetakPDFKB = async () => {
+    const loadingToast = toast.loading("Sedang menyiapkan dokumen PDF...");
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = 15;
+
+      // HEADER
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      
+      try {
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+      } catch (error) {
+        console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
+        doc.setFillColor(200, 200, 200); 
+        doc.circle(20, currentY + 5, 8, 'F'); 
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 15;
+      
+      doc.setLineWidth(0.5);
+      doc.line(15, currentY, pageWidth - 15, currentY);
+
+      currentY += 10;
+
+      // BODY
+      doc.setFontSize(12);
+      doc.text("Basis Pengetahuan (Nilai CF Pakar)", pageWidth / 2, currentY, { align: "center" });
+      
+      currentY += 8;
+
+      const activeKbData = kbData.filter(g => g.isActive !== false);
+
+      const tableData = activeKbData.map(item => {
+        let cfPakar = "-";
+        if (item.mb !== null && item.md !== null) {
+          cfPakar = (item.mb - item.md).toFixed(2);
+        }
+        return [
+          item.kode_gejala, 
+          item.mb !== null ? item.mb : "-", 
+          item.md !== null ? item.md : "-", 
+          cfPakar
+        ];
+      });
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Kode Gejala', 'Nilai MB', 'Nilai MD', 'CF Pakar']],
+        body: tableData,
+        theme: 'grid', 
+        styles: {
+          font: 'helvetica',
+          fontSize: 10,
+          lineWidth: 0.1,
+          lineColor: [0, 0, 0],
+          textColor: [0, 0, 0]
+        },
+        headStyles: {
+          fillColor: [240, 240, 240], 
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          1: { halign: 'center' },
+          2: { halign: 'center' },
+          3: { halign: 'center' }
+        }
+      });
+
+      // FOOTER
+      const finalY = doc.lastAutoTable.finalY + 20;
+
+      let footerY = finalY;
+      if (footerY > pageHeight - 40) {
+        doc.addPage();
+        footerY = 20;
+      }
+
+      const today = new Date();
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const formattedDate = today.toLocaleDateString('id-ID', options);
+
+      const signatureX = pageWidth - 70;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Jakarta, ${formattedDate}`, signatureX, footerY);
+      doc.text("Pakar,", signatureX, footerY + 5);
+      
+      doc.text("                                         ", signatureX, footerY + 30);
+      const textWidth = doc.getTextWidth("                                         ");
+      doc.setLineWidth(0.3);
+      doc.line(signatureX, footerY + 31, signatureX + textWidth, footerY + 31);
+
+      doc.save("Laporan_Knowledge_Base_CF_Pakar.pdf");
+      toast.success("PDF berhasil dicetak!", { id: loadingToast });
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencetak PDF.", { id: loadingToast });
+    }
   };
 
   const getCFBadge = (cf) => {
@@ -129,7 +258,7 @@ export default function ManageKnowledgeBasePage() {
           <p className="text-sm text-slate-500 mt-0.5">CF Pakar = MB − MD (dihitung otomatis)</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto flex-wrap">
-          <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
+          <Button onClick={cetakPDFKB} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
           <Button onClick={handleSync} variant="default" className="w-full md:w-auto" disabled={syncing}>
             {syncing ? "Menyinkronkan..." : "Sinkron Gejala"}
           </Button>

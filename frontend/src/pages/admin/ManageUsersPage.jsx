@@ -74,6 +74,41 @@ export default function ManageUsersPage() {
     }
   };
 
+  const handleResetQuota = async (userId, userName) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-sm">Reset kuota diagnosis?</p>
+          <p className="text-xs text-slate-500">Apakah Anda yakin ingin me-reset kuota untuk user <strong className="text-slate-700">{userName}</strong> menjadi 3?</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await axios.put(`${API_URL}/${userId}/reset-quota`, {}, getAuthConfig());
+                  toast.success(`Kuota ${userName} berhasil direset!`);
+                  setUsersData(prev => prev.map(u => u._id === userId ? { ...u, quota: 3 } : u));
+                } catch (error) {
+                  toast.error(error.response?.data?.message || "Gagal me-reset kuota user.");
+                }
+              }}
+              className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Ya, Reset
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 bg-slate-100 text-slate-700 text-xs rounded-md hover:bg-slate-200 transition-colors"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -137,15 +172,26 @@ export default function ManageUsersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         {item.role !== 'admin' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={!item.shareData}
-                            onClick={() => handleViewHistory(item._id)}
-                            title={!item.shareData ? "User tidak mengizinkan akses data" : "Lihat Riwayat"}
-                          >
-                            Lihat Riwayat
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              onClick={() => handleResetQuota(item._id, item.name)}
+                              title="Reset Kuota"
+                            >
+                              Reset Kuota
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={!item.shareData}
+                              onClick={() => handleViewHistory(item._id)}
+                              title={!item.shareData ? "User tidak mengizinkan akses data" : "Lihat Riwayat"}
+                            >
+                              Lihat Riwayat
+                            </Button>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>

@@ -1,7 +1,7 @@
 const CfOption = require('../models/CfOption');
 const TingkatPenyakit = require('../models/TingkatPenyakit');
 
-//Get all config for frontend (diagnosis page)
+//Get all config
 exports.getSystemConfig = async (req, res) => {
     try {
         const cfOptions = await CfOption.find().sort({ value: -1 });

@@ -9,7 +9,10 @@ import {
 } from "lucide-react";
 
 import useDiagnosisStore from "@/store/useDiagnosisStore";
-import html2pdf from "html2pdf.js";
+import { useAuthStore } from "@/store/useAuthStore";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import toast from "react-hot-toast";
 import axios from "axios";
 
 //Phase constants
@@ -23,7 +26,24 @@ const GEJALA_API = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/gejala`
   : "http://localhost:5151/api/gejala";
 
-// Mapping warna berdasarkan nama_tingkat dari database
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = error => reject(error);
+    img.src = url;
+  });
+}
+
+// Mapping warna
 const LEVEL_STYLES = {
   "Tidak Nomophobia":  { color: "text-green-600",  bgColor: "bg-green-50",  borderColor: "border-green-200",  badgeColor: "bg-green-100 text-green-700",  barColor: "bg-green-500" },
   "Nomophobia Ringan": { color: "text-blue-600",   bgColor: "bg-blue-50",   borderColor: "border-blue-200",   badgeColor: "bg-blue-100 text-blue-700",   barColor: "bg-blue-500" },
@@ -95,7 +115,9 @@ function LoadingScreen() {
 }
 
 // Start Screen Component
-function StartScreen({ onStart }) {
+function StartScreen({ onStart, user }) {
+  const isQuotaEmpty = user && user.role !== 'admin' && user.quota <= 0;
+
   return (
     <Motion.div
       key="start"
@@ -113,8 +135,8 @@ function StartScreen({ onStart }) {
         <Stethoscope size={44} className="text-white" />
       </Motion.div>
       <div className="space-y-3 max-w-lg">
-        <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
-          <Activity size={12} /> Sistem Pakar · Certainty Factor · NMP-Q
+        <span className="inline-flex items-center gap-1.5 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          Sistem Pakar · Certainty Factor · NMP-Q
         </span>
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Mulai Diagnosis Nomophobia</h2>
         <p className="text-slate-500 leading-relaxed">
@@ -122,15 +144,22 @@ function StartScreen({ onStart }) {
         </p>
       </div>
 
-      <Motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-        <Button
-          size="lg"
-          onClick={onStart}
-          className="px-10 h-13 rounded-full text-base font-semibold shadow-lg shadow-blue-500/30 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 cursor-pointer"
-        >
-          Mulai Diagnosis <ArrowRight size={18} className="ml-2" />
-        </Button>
-      </Motion.div>
+      {isQuotaEmpty ? (
+        <div className="bg-red-50 text-red-600 px-5 py-4 rounded-xl border border-red-200 max-w-md text-sm font-medium flex items-center gap-3">
+          <AlertCircle size={24} className="shrink-0" />
+          <p className="text-left">Maaf, kuota diagnosis Anda telah habis. Harap hubungi admin untuk mendapatkan kuota tambahan.</p>
+        </div>
+      ) : (
+        <Motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+          <Button
+            size="lg"
+            onClick={onStart}
+            className="px-10 h-13 rounded-full text-base font-semibold shadow-lg shadow-blue-500/30 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 cursor-pointer"
+          >
+            Mulai Diagnosis <ArrowRight size={18} className="ml-2" />
+          </Button>
+        </Motion.div>
+      )}
     </Motion.div>
   );
 }
@@ -161,7 +190,7 @@ function ProgressDots({ total, current, answered }) {
 }
 
 // Result Screen Component
-function ResultScreen({ result, onReset, levels }) {
+function ResultScreen({ result, onReset, levels, user, answers, gejalaList, cfOptions }) {
   const percentageFloat = parseFloat(result.persentase);
   const matchedLevel = (levels || []).find(
     (l) => percentageFloat >= l.batas_min && percentageFloat <= l.batas_max
@@ -170,16 +199,169 @@ function ResultScreen({ result, onReset, levels }) {
   const style = LEVEL_STYLES[levelName] || DEFAULT_STYLE;
   const pdfRef = useRef(null);
 
-  const handleDownloadPDF = () => {
-    const element = pdfRef.current;
-    const opt = {
-      margin:       10,
-      filename:     'Hasil_Diagnosis_Nomophobia.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+  const handleDownloadPDF = async () => {
+    const loadingToast = toast.loading("Sedang menyiapkan dokumen PDF...");
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = 15;
+
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      try {
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+      } catch (error) {
+        console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
+        doc.setFillColor(200, 200, 200); 
+        doc.circle(20, currentY + 5, 8, 'F'); 
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 15;
+      
+      doc.setLineWidth(0.5);
+      doc.line(15, currentY, pageWidth - 15, currentY);
+
+      currentY += 15;
+
+      doc.setFontSize(14);
+      doc.text("Laporan Hasil Diagnosis", pageWidth / 2, currentY, { align: "center" });
+
+      currentY += 15;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      
+      const tanggalTes = new Date().toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      const namaLengkap = user?.name || "User Guest";
+      
+      const xLabel = 15; 
+      const xTitikDua = 50; 
+      const xNilai = 53; 
+      
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+
+      // Nama Lengkap
+      doc.text("Nama Lengkap", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.text(`${namaLengkap}`, xNilai, currentY);
+      currentY += 6;
+
+      // Tanggal Tes
+      doc.text("Tanggal Tes", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.text(`${tanggalTes}`, xNilai, currentY);
+      currentY += 6;
+      
+      // Hasil Diagnosis
+      doc.text("Hasil Diagnosis", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${levelName || "Tidak Diketahui"}`, xNilai, currentY);
+      doc.setFont("helvetica", "normal");
+      currentY += 6;
+      
+      // Tingkat Keyakinan
+      doc.text("Tingkat Keyakinan", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${result.persentase}`, xNilai, currentY);
+      doc.setFont("helvetica", "normal");
+      
+      currentY += 10;
+
+      const tableData = gejalaList.map((g, i) => {
+        const val = answers[i];
+        const cfLabel = cfOptions.find(opt => opt.value === val)?.label || "-";
+        return [
+          (i + 1).toString(),
+          g.pernyataan,
+          cfLabel
+        ];
+      });
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['No', 'Gejala', 'Jawaban Anda']],
+        body: tableData,
+        theme: 'grid',
+        margin: { bottom: 30 },
+        styles: {
+          font: 'helvetica',
+          fontSize: 10,
+          lineWidth: 0.1,
+          lineColor: [0, 0, 0],
+          textColor: [0, 0, 0]
+        },
+        headStyles: {
+          fillColor: [240, 240, 240], 
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { halign: 'left' },
+          2: { halign: 'center', cellWidth: 35 }
+        }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      if (currentY > pageHeight - 50) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("Solusi / Saran Penanganan:", 15, currentY);
+      
+      doc.setFont("helvetica", "normal");
+      const solusiDetox = result.tingkat_keparahan?.solusi_detox || "Tidak ada saran spesifik.";
+      const splitTeksSolusi = doc.splitTextToSize(solusiDetox, pageWidth - 30);
+      doc.text(splitTeksSolusi, 15, currentY + 6);
+
+      currentY += splitTeksSolusi.length * 5 + 10;
+
+      if (currentY > pageHeight - 40) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      const signatureX = pageWidth - 70;
+      const tglCetak = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      doc.text(`Jakarta, ${tglCetak}`, signatureX, currentY);
+      doc.text("Mengetahui,", signatureX, currentY + 5);
+      doc.text("Pakar / Konselor", signatureX, currentY + 10);
+      
+      doc.text("                                         ", signatureX, currentY + 35);
+      const textWidth = doc.getTextWidth("                                         ");
+      doc.setLineWidth(0.3);
+      doc.line(signatureX, currentY + 36, signatureX + textWidth, currentY + 36);
+
+      doc.save(`Hasil_Diagnosis_${namaLengkap.replace(/\s+/g, '_')}.pdf`);
+      toast.success("PDF berhasil dicetak!", { id: loadingToast });
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencetak PDF.", { id: loadingToast });
+    }
   };
 
   return (
@@ -204,14 +386,14 @@ function ResultScreen({ result, onReset, levels }) {
           <CardContent className="p-5 md:p-6 space-y-4">
             <div className="flex items-center justify-between gap-4">
               
-              {/* Bagian Kiri: Badge Tingkat Keparahan */}
+              {/* Badge Tingkat Keparahan */}
               <div>
                 <span className={`text-sm md:text-base font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-full ${style.badgeColor}`}>
                   Tingkat: {levelName || "Tidak Diketahui"}
                 </span>
               </div>
               
-              {/* Bagian Kanan: Score CF */}
+              {/* Score CF */}
               <div className="text-right shrink-0">
                 <p className="text-3xl md:text-4xl font-black text-slate-900">{result.persentase}</p>
                 <p className="text-xs md:text-sm text-slate-500 font-medium">CF Score</p>
@@ -245,7 +427,7 @@ function ResultScreen({ result, onReset, levels }) {
           </Card>
         )}
 
-        {/* Disclaimer / Peringatan */}
+        {/* Peringatan */}
         <div className="p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-start sm:items-center gap-2.5 sm:gap-3">
           <AlertCircle className="text-slate-500 shrink-0 mt-0.5 sm:mt-0" size={18} />
           <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
@@ -280,6 +462,7 @@ export default function DiagnosisPage() {
   const [gejalaError, setGejalaError] = useState(false);
 
   const { submitDiagnosisToBackend, diagnosisResult, error, resetDiagnosis } = useDiagnosisStore();
+  const { user, setUser } = useAuthStore();
 
   const topRef = useRef(null);
 
@@ -370,6 +553,9 @@ export default function DiagnosisPage() {
 
       if (response) {
         setPhase(PHASE.RESULT);
+        if (user && user.role !== 'admin' && response.sisa_kuota !== undefined) {
+          setUser({ ...user, quota: response.sisa_kuota });
+        }
       } else {
         setPhase(PHASE.ERROR);
       }
@@ -422,7 +608,7 @@ export default function DiagnosisPage() {
 
       {/* Main Content */}
       <AnimatePresence mode="wait">
-        {phase === PHASE.START && <StartScreen key="start" onStart={handleStart} />}
+        {phase === PHASE.START && <StartScreen key="start" onStart={handleStart} user={user} />}
 
         {phase === PHASE.LOADING && <LoadingScreen key="loading" />}
 
@@ -436,7 +622,7 @@ export default function DiagnosisPage() {
         )}
 
         {phase === PHASE.RESULT && diagnosisResult && (
-          <ResultScreen key="result" result={diagnosisResult} onReset={handleReset} levels={levels} />
+          <ResultScreen key="result" result={diagnosisResult} onReset={handleReset} levels={levels} user={user} answers={answers} gejalaList={gejalaList} cfOptions={cfOptions} />
         )}
 
         {phase === PHASE.QUIZ && (

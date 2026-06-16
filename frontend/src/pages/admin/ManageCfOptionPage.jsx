@@ -5,11 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/cf-options`
   : "http://localhost:5151/api/cf-options";
+
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = error => reject(error);
+    img.src = url;
+  });
+}
 
 export default function ManageCfOptionPage() {
   const [cfOptions, setCfOptions] = useState([]);
@@ -116,11 +135,116 @@ export default function ManageCfOptionPage() {
     );
   };
 
+  const cetakPDFCfOption = async () => {
+    const loadingToast = toast.loading("Sedang menyiapkan dokumen PDF...");
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = 15;
+
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      try {
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+      } catch (error) {
+        console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
+        doc.setFillColor(200, 200, 200); 
+        doc.circle(20, currentY + 5, 8, 'F'); 
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 15;
+      
+      doc.setLineWidth(0.5);
+      doc.line(15, currentY, pageWidth - 15, currentY);
+
+      currentY += 10;
+
+      doc.setFontSize(12);
+      doc.text("Daftar Pilihan Jawaban & Bobot CF User", pageWidth / 2, currentY, { align: "center" });
+      
+      currentY += 8;
+
+      const tableData = cfOptions.map(item => [
+        item.label,
+        item.value,
+        item.description
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Label', 'Nilai (Value)', 'Deskripsi']],
+        body: tableData,
+        theme: 'grid', 
+        styles: {
+          font: 'helvetica',
+          fontSize: 10,
+          lineWidth: 0.1,
+          lineColor: [0, 0, 0],
+          textColor: [0, 0, 0]
+        },
+        headStyles: {
+          fillColor: [240, 240, 240], 
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 35 },
+          1: { halign: 'center', cellWidth: 30 },
+          2: { halign: 'left' }
+        }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 20;
+
+      let footerY = finalY;
+      if (footerY > pageHeight - 40) {
+        doc.addPage();
+        footerY = 20;
+      }
+
+      const today = new Date();
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const formattedDate = today.toLocaleDateString('id-ID', options);
+
+      const signatureX = pageWidth - 70;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Jakarta, ${formattedDate}`, signatureX, footerY);
+      doc.text("Pakar,", signatureX, footerY + 5);
+      
+      doc.text("                                         ", signatureX, footerY + 30);
+      const textWidth = doc.getTextWidth("                                         ");
+      doc.setLineWidth(0.3);
+      doc.line(signatureX, footerY + 31, signatureX + textWidth, footerY + 31);
+
+      doc.save("Laporan_CF_Options.pdf");
+      toast.success("PDF berhasil dicetak!", { id: loadingToast });
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencetak PDF.", { id: loadingToast });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola CF Options</h2>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+          <Button onClick={cetakPDFCfOption} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
           <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">Tambah CF Option</Button>
         </div>
       </div>

@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
 
-// Konfigurasi agar browser selalu mengirim cookie HTTP-only
+// Cookie HTTP-only
 axios.defaults.withCredentials = true;
 
-// Set default header if token exists in localStorage
+// Header if token exist
 const token = localStorage.getItem('token');
 if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -61,9 +61,20 @@ export const useAuthStore = create(
       },
 
       setUser: (user) => set({ user }),
+
+      fetchProfile: async () => {
+        try {
+          const response = await axios.get(getApiUrl('/auth/profile'));
+          if (response.data.success) {
+            set({ user: response.data.data });
+          }
+        } catch (error) {
+          console.error("Gagal mengambil profil:", error);
+        }
+      },
     }),
     {
-      name: 'auth-storage', // key in localStorage
+      name: 'auth-storage', 
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated, role: state.role }),
     }
   )

@@ -5,12 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
-import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/gejala`
   : "http://localhost:5151/api/gejala";
+
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL("image/png");
+      resolve(dataURL);
+    };
+    
+    img.onerror = error => {
+      reject(error);
+    };
+    
+    img.src = url;
+  });
+}
 
 export default function ManageGejalaPage() {
   const [gejalaData, setGejalaData] = useState([]);
@@ -137,16 +161,123 @@ export default function ManageGejalaPage() {
     );
   };
 
-  const handlePrintPdf = () => {
-    const element = tableRef.current;
-    const opt = {
-      margin: [0.5, 0.5, 0.5, 0.5],
-      filename: "Laporan_Gejala_NMPQ.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "landscape" },
-    };
-    html2pdf().set(opt).from(element).save();
+  // async function to load image
+  const cetakPDFGejala = async () => {
+    // toast loading
+    const loadingToast = toast.loading("Sedang menyiapkan dokumen PDF");
+
+    try {
+      // jsPDF initialization
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = 15;
+
+      // HEADER
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      
+      try {
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+      } catch (error) {
+        console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
+        // Fallback
+        doc.setFillColor(200, 200, 200); 
+        doc.circle(20, currentY + 5, 8, 'F'); 
+      }
+
+      // Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 15;
+      
+      // Divider line
+      doc.setLineWidth(0.5);
+      doc.line(15, currentY, pageWidth - 15, currentY);
+
+      currentY += 10;
+
+      // BODY
+      doc.setFontSize(12);
+      doc.text("Daftar Gejala", pageWidth / 2, currentY, { align: "center" });
+      
+      currentY += 8;
+
+      // Prepare table data
+      const activeGejala = gejalaData.filter(g => g.isActive !== false);
+      
+      // Format data for autotable
+      const tableData = activeGejala.map(g => [g.kode_gejala, g.pernyataan]);
+
+      // Render table using autotable
+      autoTable(doc, {
+        startY: currentY,
+        head: [['ID', 'Pertanyaan Kuesioner']],
+        body: tableData,
+        theme: 'grid',
+        margin: { bottom: 40 }, 
+        styles: {
+          font: 'helvetica',
+          fontSize: 10,
+          lineWidth: 0.1,
+          lineColor: [0, 0, 0],
+          textColor: [0, 0, 0]
+        },
+        headStyles: {
+          fillColor: [240, 240, 240],
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 20, halign: 'center' },
+          1: { cellWidth: 'auto' }
+        }
+      });
+
+      // FOOTER
+      const finalY = doc.lastAutoTable.finalY + 20;
+
+      let footerY = finalY;
+      if (footerY > pageHeight - 40) {
+        doc.addPage();
+        footerY = 20;
+      }
+
+      // Dynamic Date Format
+      const today = new Date();
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const formattedDate = today.toLocaleDateString('id-ID', options);
+
+      // Determine signature position
+      const signatureX = pageWidth - 70;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Jakarta, ${formattedDate}`, signatureX, footerY);
+      doc.text("Pakar,", signatureX, footerY + 5);
+      
+      doc.text("                                         ", signatureX, footerY + 30);
+      
+      const textWidth = doc.getTextWidth("                                         ");
+      doc.setLineWidth(0.3);
+      doc.line(signatureX, footerY + 31, signatureX + textWidth, footerY + 31);
+
+      // Save file
+      doc.save("Laporan_Gejala_NMPQ.pdf");
+      toast.success("PDF berhasil dicetak!", { id: loadingToast });
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencetak PDF.", { id: loadingToast });
+    }
   };
 
   return (
@@ -154,7 +285,7 @@ export default function ManageGejalaPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Gejala (NMPQ)</h2>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-          <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">
+          <Button onClick={cetakPDFGejala} variant="outline" className="w-full md:w-auto">
             Cetak PDF
           </Button>
           <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">

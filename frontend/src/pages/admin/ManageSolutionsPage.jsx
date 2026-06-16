@@ -4,13 +4,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
-import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 
-// Memindahkan konstanta ke luar komponen agar referensinya absolut statis
 const API_URL = import.meta.env.VITE_API_URL 
   ? `${import.meta.env.VITE_API_URL}/tingkat` 
   : "http://localhost:5151/api/tingkat";
+
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = error => reject(error);
+    img.src = url;
+  });
+}
 
 export default function ManageSolutionsPage() {
   const [tingkatData, setTingkatData] = useState([]);
@@ -81,23 +98,115 @@ export default function ManageSolutionsPage() {
     setIsModalOpen(true);
   }
 
-  function handlePrintPdf() {
-    const element = tableRef.current;
-    const opt = {
-      margin:       [0.5, 0.5, 0.5, 0.5],
-      filename:     'Daftar_Solusi_Nomophobia.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+  async function cetakPDFSolusi() {
+    const loadingToast = toast.loading("Sedang menyiapkan dokumen PDF...");
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = 15;
+
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      try {
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+      } catch (error) {
+        console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
+        doc.setFillColor(200, 200, 200); 
+        doc.circle(20, currentY + 5, 8, 'F'); 
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 15;
+      
+      doc.setLineWidth(0.5);
+      doc.line(15, currentY, pageWidth - 15, currentY);
+
+      currentY += 10;
+
+      doc.setFontSize(12);
+      doc.text("Daftar Solusi per Tingkatan", pageWidth / 2, currentY, { align: "center" });
+      
+      currentY += 8;
+
+      const tableData = tingkatData.map(item => [
+        item.kode_tingkat,
+        item.nama_tingkat,
+        item.solusi_detox || "-"
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['ID Tingkat', 'Nama Tingkat', 'Solusi / Saran']],
+        body: tableData,
+        theme: 'grid', 
+        styles: {
+          font: 'helvetica',
+          fontSize: 10,
+          lineWidth: 0.1,
+          lineColor: [0, 0, 0],
+          textColor: [0, 0, 0]
+        },
+        headStyles: {
+          fillColor: [240, 240, 240], 
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 20 },
+          1: { halign: 'left', cellWidth: 40 },
+          2: { halign: 'justify' }
+        }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 20;
+
+      let footerY = finalY;
+      if (footerY > pageHeight - 40) {
+        doc.addPage();
+        footerY = 20;
+      }
+
+      const today = new Date();
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const formattedDate = today.toLocaleDateString('id-ID', options);
+
+      const signatureX = pageWidth - 70;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Jakarta, ${formattedDate}`, signatureX, footerY);
+      doc.text("Pakar,", signatureX, footerY + 5);
+      
+      doc.text("                                         ", signatureX, footerY + 30);
+      const textWidth = doc.getTextWidth("                                         ");
+      doc.setLineWidth(0.3);
+      doc.line(signatureX, footerY + 31, signatureX + textWidth, footerY + 31);
+
+      doc.save("Laporan_Solusi_Nomophobia.pdf");
+      toast.success("PDF berhasil dicetak!", { id: loadingToast });
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencetak PDF.", { id: loadingToast });
+    }
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Solusi / Anjuran</h2>
-        <Button onClick={handlePrintPdf} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
+        <Button onClick={cetakPDFSolusi} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
       </div>
       
       <Card>

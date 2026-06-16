@@ -27,8 +27,10 @@ router.get('/refresh', authController.refreshToken);
 router.get('/users', protect, authorizeRoles('admin'), authController.getAllUsers);
 router.get('/admin/stats', protect, authorizeRoles('admin'), authController.getAdminStats);
 router.get('/users/:id/history', protect, authorizeRoles('admin'), authController.getUserHistoryByAdmin);
+router.put('/users/:id/reset-quota', protect, authorizeRoles('admin'), authController.resetUserQuota);
 
 router.patch('/share-data', protect, authController.updateShareData);
+router.get('/profile', protect, authController.getProfile);
 router.put('/profile', protect, authController.updateProfile);
 
 module.exports = router;

@@ -3,10 +3,6 @@ import { runForwardChaining } from "@/utils/inferenceEngine";
 import { rules } from "@/services/knowledgeBase";
 import useDiagnosisStore from "@/store/useDiagnosisStore";
 
-/**
- * Custom hook untuk menjalankan proses diagnosis
- * Mengakses Zustand store dan inference engine
- */
 export function useDiagnosis() {
   const [error, setError] = useState(null);
 

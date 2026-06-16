@@ -7,7 +7,6 @@ const knowledgeBaseSchema = new mongoose.Schema({
     cf_pakar: { type: Number, default: null }
 }, { timestamps: true });
 
-// Auto-hitung cf_pakar saat simpan dokumen baru 
 knowledgeBaseSchema.pre('save', function (next) {
     if (this.mb !== null && this.mb !== undefined && this.md !== null && this.md !== undefined) {
         this.cf_pakar = parseFloat((this.mb - this.md).toFixed(4));

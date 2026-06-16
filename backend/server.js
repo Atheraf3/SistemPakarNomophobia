@@ -10,6 +10,7 @@ const swaggerDocument = require('./src/config/swagger.json');
 const connectDB = require('./src/config/db');
 const { errorHandler } = require('./src/middlewares/errorMiddleware');
 const corsOptions = require('./src/config/corsOptions');
+const startQuotaJob = require('./src/jobs/quotaJob');
 
 //dotenv
 dotenv.config();
@@ -24,6 +25,8 @@ if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
 }
 
+app.use(cors(corsOptions));
+
 //rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
@@ -31,7 +34,6 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter); 
 
-app.use(cors(corsOptions));
 
 //body parser
 app.use(express.json());
@@ -68,6 +70,9 @@ app.use(errorHandler);
 
 //connect db
 connectDB();
+
+//cron jobs
+startQuotaJob();
 
 //start server
 if (process.env.NODE_ENV !== 'production') {

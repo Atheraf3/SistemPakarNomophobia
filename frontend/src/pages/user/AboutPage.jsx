@@ -29,7 +29,7 @@ export default function AboutPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 1. Tentang Sistem Pakar */}
+        {/* Tentang Sistem Pakar */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -50,7 +50,7 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* 2. Apa itu Nomophobia */}
+        {/* Apa itu Nomophobia */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -70,7 +70,7 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* 3. Instrumen NMPQ */}
+        {/* Instrumen NMPQ */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -93,7 +93,7 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* 4. Metode Certainty Factor (CF) */}
+        {/* Metode Certainty Factor (CF) */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function AboutPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {/* 5. Cara Kerja Sistem */}
+        {/* Cara Kerja Sistem */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function AboutPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 6. Hasil Diagnosis */}
+        {/* Hasil Diagnosis */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -152,10 +152,10 @@ export default function AboutPage() {
           <CardContent className="text-slate-700 leading-relaxed text-justify">
             <p className="mb-3">Sistem menghasilkan output persentase kepastian yang dikategorikan ke dalam beberapa tingkatan:</p>
             {tingkatList.length > 0 ? (
-              <ul className="space-y-2 text-sm">
+              <ul className="list-disc pl-5 space-y-2 text-sm">
                 {tingkatList.map(t => (
                   <li key={t._id}>
-                    <span className="font-semibold text-blue-600">{t.nama_tingkat} ({t.batas_min}% - {t.batas_max}%):</span> {t.solusi_detox ? t.solusi_detox.substring(0, 100) + "..." : "Sesuai anjuran sistem."}
+                    <span className="font-semibold text-black">{t.nama_tingkat}</span> ({t.batas_min}% - {t.batas_max}%)
                   </li>
                 ))}
               </ul>
@@ -165,7 +165,7 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* 7. Rekomendasi */}
+        {/* Rekomendasi */}
         <Card className="shadow-sm border-slate-200 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl text-blue-800 flex items-center gap-2">
@@ -186,11 +186,11 @@ export default function AboutPage() {
         </Card>
       </div>
 
-      {/* 8. Penafian */}
+      {/* Peringatan */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mt-8 shadow-sm">
         <h3 className="text-amber-800 font-bold mb-2 flex items-center gap-2 text-lg">
           <span className="bg-amber-100 text-amber-800 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold">8</span>
-          Disclaimer
+          Peringatan
         </h3>
         <p className="text-amber-900 text-justify">
           Sistem ini hanya digunakan sebagai alat bantu deteksi dini dan <strong>tidak menggantikan diagnosis profesional</strong> dari ahli.
