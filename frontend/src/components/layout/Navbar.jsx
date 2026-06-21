@@ -72,6 +72,9 @@ function Navbar() {
             <img
               src="https://ik.imagekit.io/2xthk8ud4/TA/Fav.png"
               alt="Sistem Pakar Logo"
+              width="40"
+              height="40"
+              fetchPriority="high"
               style={{ height: "40px", width: "auto" }}
             />
           </Link>
