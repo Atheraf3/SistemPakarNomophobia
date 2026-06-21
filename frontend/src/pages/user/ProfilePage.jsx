@@ -7,6 +7,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API_URL = import.meta.env.VITE_API_URL 
   ? `${import.meta.env.VITE_API_URL}/diagnosis/history` 
@@ -19,6 +21,35 @@ const SHARE_API = import.meta.env.VITE_API_URL
 const PROFILE_API = import.meta.env.VITE_API_URL 
   ? `${import.meta.env.VITE_API_URL}/auth/profile` 
   : "http://localhost:5151/api/auth/profile";
+
+const GEJALA_API = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/gejala` 
+  : "http://localhost:5151/api/gejala";
+
+const CF_OPTIONS_API = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/cf-options` 
+  : "http://localhost:5151/api/cf-options";
+
+const TINGKAT_API = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/tingkat` 
+  : "http://localhost:5151/api/tingkat";
+
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute("crossOrigin", "anonymous");
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = error => reject(error);
+    img.src = url;
+  });
+}
 
 
 export default function ProfilePage() {
@@ -37,6 +68,7 @@ export default function ProfilePage() {
   // Modal Detail Riwayat
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState(null);
+  const [cfOptionsList, setCfOptionsList] = useState([]);
 
   const totalPages = Math.ceil(historyData.length / itemsPerPage);
   const currentHistoryData = historyData.slice(
@@ -59,9 +91,13 @@ export default function ProfilePage() {
 
     async function startFetching() {
       try {
-        const data = await fetchHistory();
+        const [data, cfRes] = await Promise.all([
+          fetchHistory(),
+          axios.get(CF_OPTIONS_API).catch(() => ({ data: { data: [] } }))
+        ]);
         if (!ignore) {
           setHistoryData(data);
+          setCfOptionsList(cfRes.data?.data || []);
           setLoading(false);
         }
       } catch (error) {
@@ -167,6 +203,165 @@ export default function ProfilePage() {
     setIsEditModalOpen(true);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!selectedHistory) return;
+    const loadingToast = toast.loading("Sedang menyiapkan dokumen PDF...");
+
+    try {
+      const [gejalaRes, cfRes, tingkatRes] = await Promise.all([
+        axios.get(GEJALA_API),
+        axios.get(CF_OPTIONS_API),
+        axios.get(TINGKAT_API)
+      ]);
+      
+      const gejalaList = gejalaRes.data.data || [];
+      const cfOptions = cfRes.data.data || [];
+      const tingkatList = tingkatRes.data.data || [];
+
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = 15;
+
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      try {
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+      } catch (error) {
+        console.error("Gagal memuat logo", error);
+        doc.setFillColor(200, 200, 200); 
+        doc.circle(20, currentY + 5, 8, 'F'); 
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 15;
+      
+      doc.setLineWidth(0.5);
+      doc.line(15, currentY, pageWidth - 15, currentY);
+
+      currentY += 15;
+
+      doc.setFontSize(14);
+      doc.text("Laporan Hasil Diagnosis", pageWidth / 2, currentY, { align: "center" });
+
+      currentY += 15;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      
+      const tanggalTes = new Date(selectedHistory.tanggal).toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      const namaLengkap = user?.name || "User Guest";
+      
+      const xLabel = 15; 
+      const xTitikDua = 50; 
+      const xNilai = 53; 
+      
+      doc.text("Nama Lengkap", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.text(`${namaLengkap}`, xNilai, currentY);
+      currentY += 6;
+
+      doc.text("Tanggal Tes", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.text(`${tanggalTes}`, xNilai, currentY);
+      currentY += 6;
+      
+      doc.text("Hasil Diagnosis", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${selectedHistory.tingkat_keparahan || "Tidak Diketahui"}`, xNilai, currentY);
+      doc.setFont("helvetica", "normal");
+      currentY += 6;
+      
+      doc.text("Tingkat Keyakinan", xLabel, currentY);
+      doc.text(":", xTitikDua, currentY);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${(selectedHistory.nilai_cf_akhir * 100).toFixed(2)}%`, xNilai, currentY);
+      doc.setFont("helvetica", "normal");
+      
+      currentY += 10;
+
+      const tableData = (selectedHistory.detail_jawaban_user || []).map((jawaban, i) => {
+        const g = gejalaList.find(gej => gej.kode_gejala === jawaban.gejalaId) || { pernyataan: "Gejala tidak ditemukan" };
+        const cfLabel = cfOptions.find(opt => opt.value === jawaban.cfUser)?.label || "-";
+        return [
+          (i + 1).toString(),
+          g.pernyataan,
+          cfLabel
+        ];
+      });
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['No', 'Gejala', 'Jawaban Anda']],
+        body: tableData,
+        theme: 'grid',
+        margin: { bottom: 30 },
+        styles: { font: 'helvetica', fontSize: 10, lineWidth: 0.1, lineColor: [0, 0, 0], textColor: [0, 0, 0] },
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { halign: 'left' },
+          2: { halign: 'center', cellWidth: 35 }
+        }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      if (currentY > pageHeight - 50) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("Solusi / Saran Penanganan:", 15, currentY);
+      
+      doc.setFont("helvetica", "normal");
+      const matchedTingkat = tingkatList.find(t => t.nama_tingkat === selectedHistory.tingkat_keparahan);
+      const solusiDetox = matchedTingkat?.solusi_detox || "Tidak ada saran spesifik.";
+      const splitTeksSolusi = doc.splitTextToSize(solusiDetox, pageWidth - 30);
+      doc.text(splitTeksSolusi, 15, currentY + 6);
+
+      currentY += splitTeksSolusi.length * 5 + 10;
+
+      if (currentY > pageHeight - 40) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      const signatureX = pageWidth - 70;
+      const tglCetak = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      doc.text(`Jakarta, ${tglCetak}`, signatureX, currentY);
+      doc.text("Mengetahui,", signatureX, currentY + 5);
+      doc.text("Pakar / Konselor", signatureX, currentY + 10);
+      
+      doc.text("                                         ", signatureX, currentY + 35);
+      const textWidth = doc.getTextWidth("                                         ");
+      doc.setLineWidth(0.3);
+      doc.line(signatureX, currentY + 36, signatureX + textWidth, currentY + 36);
+
+      doc.save(`Riwayat_Diagnosis_${namaLengkap.replace(/\s+/g, '_')}_${tanggalTes.substring(0,10).replace(/\s+/g, '_')}.pdf`);
+      toast.success("PDF berhasil dicetak!", { id: loadingToast });
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal mencetak PDF.", { id: loadingToast });
+    }
+  };
+
   return (
     <div className="container mx-auto max-w-4xl px-4 md:px-8 py-6 md:py-8 space-y-6">
       <h2 className="text-2xl font-bold tracking-tight">Profil Pengguna</h2>
@@ -192,7 +387,7 @@ export default function ProfilePage() {
             <div className="col-span-2">{user?.age ? `${user.age} Tahun` : "-"}</div>
           </div>
           <div className="grid grid-cols-3 border-b py-3">
-            <div className="font-medium text-slate-500">Kuota Diagnosis</div>
+            <div className="font-medium text-slate-500">Sisa Kuota Diagnosis</div>
             <div className="col-span-2 font-bold text-blue-600">
               {user?.role === 'admin' ? "Unlimited (∞)" : `${user?.quota || 0} kali`}
             </div>
@@ -381,7 +576,7 @@ export default function ProfilePage() {
                 <span className="col-span-2 font-bold text-black-600">{selectedHistory.tingkat_keparahan}</span>
               </div>
               <div className="grid grid-cols-3 border-b pb-2">
-                <span className="text-slate-500 font-medium">Nilai CF Akhir</span>
+                <span className="text-slate-500 font-medium">Nilai Akhir</span>
                 <span className="col-span-2 font-semibold">{(selectedHistory.nilai_cf_akhir * 100).toFixed(2)}%</span>
               </div>
             </div>
@@ -392,17 +587,20 @@ export default function ProfilePage() {
                 <TableHeader className="bg-slate-50">
                   <TableRow>
                     <TableHead className="w-[100px]">Kode Gejala</TableHead>
-                    <TableHead>Bobot Jawaban (CF User)</TableHead>
+                    <TableHead>Jawaban</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {selectedHistory.detail_jawaban_user && selectedHistory.detail_jawaban_user.length > 0 ? (
-                    selectedHistory.detail_jawaban_user.map((jawaban, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium text-slate-700">{jawaban.gejalaId}</TableCell>
-                        <TableCell>{jawaban.cfUser}</TableCell>
-                      </TableRow>
-                    ))
+                    selectedHistory.detail_jawaban_user.map((jawaban, idx) => {
+                      const labelJawaban = cfOptionsList.find(opt => opt.value === jawaban.cfUser)?.label || jawaban.cfUser;
+                      return (
+                        <TableRow key={idx}>
+                          <TableCell className="font-medium text-slate-700">{jawaban.gejalaId}</TableCell>
+                          <TableCell>{labelJawaban}</TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={2} className="text-center text-slate-500 py-4">Data detail tidak tersedia.</TableCell>
@@ -412,8 +610,9 @@ export default function ProfilePage() {
               </Table>
             </div>
 
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>
+              <Button onClick={handleDownloadPDF} className="bg-blue-600 hover:bg-blue-700">Cetak Riwayat (PDF)</Button>
             </div>
           </div>
         </div>

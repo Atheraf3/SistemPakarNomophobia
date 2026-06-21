@@ -316,12 +316,12 @@ export default function ManageCfOptionPage() {
                 <Input
                   id="value"
                   type="number"
-                  step="0.1"
+                  step="0.01"
                   min="0"
                   max="1"
                   value={formData.value}
                   onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                  placeholder="Contoh: 0.8"
+                  placeholder="Contoh: 0.8 atau 0.05"
                   required
                 />
               </div>

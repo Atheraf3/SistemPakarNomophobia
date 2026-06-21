@@ -165,24 +165,29 @@ function StartScreen({ onStart, user }) {
 }
 
 // Question Progress Dots
-function ProgressDots({ total, current, answered }) {
+function ProgressDots({ total, current, answered, onDotClick }) {
   return (
-    <div className="flex flex-wrap gap-1.5 justify-center">
+    <div className="grid grid-cols-6 min-[400px]:grid-cols-7 sm:grid-cols-10 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-2.5 justify-items-center">
       {Array.from({ length: total }).map((_, i) => {
         const isAnswered = answered.has(i);
         const isCurrent = i === current;
         return (
-          <Motion.div
+          <Motion.button
             key={i}
-            animate={isCurrent ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+            onClick={() => onDotClick(i)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={isCurrent ? { scale: [1, 1.1, 1] } : { scale: 1 }}
             transition={isCurrent ? { duration: 1.5, repeat: Infinity } : {}}
             className={`
-              rounded-full transition-all duration-300
-              ${isCurrent ? "w-5 h-5 border-2 border-blue-600 bg-blue-600" : ""}
-              ${!isCurrent && isAnswered ? "w-5 h-5 bg-green-500" : ""}
-              ${!isCurrent && !isAnswered ? "w-5 h-5 bg-slate-200" : ""}
+              w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 outline-none cursor-pointer
+              ${isCurrent ? "border-2 border-blue-600 bg-blue-600 text-white shadow-md" : ""}
+              ${!isCurrent && isAnswered ? "bg-green-500 text-white" : ""}
+              ${!isCurrent && !isAnswered ? "bg-slate-200 text-slate-600 hover:bg-slate-300" : ""}
             `}
-          />
+          >
+            {i + 1}
+          </Motion.button>
         );
       })}
     </div>
@@ -546,7 +551,7 @@ export default function DiagnosisPage() {
 
       const mappedAnswers = {};
       gejalaList.forEach((g, i) => {
-        if (answers[i] !== undefined) mappedAnswers[g.kode_gejala] = answers[i];
+        if (answers[i] !== undefined) mappedAnswers[g.kode || g.kode_gejala] = answers[i];
       });
 
       const response = await submitDiagnosisToBackend(mappedAnswers);
@@ -567,6 +572,14 @@ export default function DiagnosisPage() {
       const prev = currentStep - 1;
       setCurrentStep(prev);
       setSelectedOption(answers[prev] ?? null);
+      scrollToTop();
+    }
+  };
+
+  const handleDotClick = (index) => {
+    if (index !== currentStep) {
+      setCurrentStep(index);
+      setSelectedOption(answers[index] ?? null);
       scrollToTop();
     }
   };
@@ -595,7 +608,7 @@ export default function DiagnosisPage() {
   }
 
   return (
-    <div ref={topRef} className="container mx-auto max-w-2xl px-4 md:px-8 py-6 md:py-8 space-y-6">
+    <div ref={topRef} className="container mx-auto max-w-5xl px-4 md:px-8 py-6 md:py-8 space-y-6">
       {/* Page Title */}
       {phase === PHASE.START && (
         <div className="space-y-1">
@@ -632,39 +645,43 @@ export default function DiagnosisPage() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="space-y-5"
+            className="flex flex-col lg:flex-row gap-6 items-start"
           >
-            {/* Progress Header */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm font-medium">
-                <span className="text-slate-600">
-                  Pertanyaan <span className="text-blue-600 font-bold">{currentStep + 1}</span> dari{" "}
-                  <span className="font-bold">{total}</span>
-                </span>
-                <span className="text-slate-500">{answeredCount} terjawab · {progress}%</span>
+            {/* Kiri: Progress Header */}
+            <div className="w-full lg:w-1/5 space-y-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm sticky top-6">
+              <div className="space-y-1">
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status Diagnosis</p>
+                <p className="text-xl text-slate-800">
+                  <span className="text-blue-600 font-bold">{currentStep + 1}</span> / <span className="font-bold">{total}</span>
+                </p>
               </div>
-              {/* Progress bar */}
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <Motion.div
-                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.4 }}
-                />
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-slate-500 font-medium">
+                  <span>Progres</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                  <Motion.div
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.4 }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400">{answeredCount} dari {total} terjawab</p>
               </div>
-              {/* Dots */}
-              <ProgressDots total={total} current={currentStep} answered={answeredSet} />
             </div>
 
-            {/* Question Card */}
-            <AnimatePresence mode="wait">
-              <Motion.div
-                key={currentStep}
-                variants={fadeUp}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <Card className="border border-slate-200 shadow-sm overflow-hidden">
+            {/* Tengah: Question Card */}
+            <div className="w-full lg:w-3/5">
+              <AnimatePresence mode="wait">
+                <Motion.div
+                  key={currentStep}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <Card className="border border-slate-200 shadow-sm overflow-hidden">
                   <CardContent className="p-0">
                     {/* Question */}
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-5 md:p-6">
@@ -749,7 +766,7 @@ export default function DiagnosisPage() {
                         onClick={handleNext}
                       >
                         {isLast ? (
-                          <><CheckCircle2 size={16} /> <span className="hidden sm:inline">Selesai & Hitung</span><span className="sm:hidden">Selesai</span></>
+                          <><CheckCircle2 size={16} /> <span className="hidden sm:inline">Selesaikan</span><span className="sm:hidden">Selesai</span></>
                         ) : (
                           <>Selanjutnya <ChevronRight size={16} /></>
                         )}
@@ -759,6 +776,13 @@ export default function DiagnosisPage() {
                 </Card>
               </Motion.div>
             </AnimatePresence>
+            </div>
+
+            {/* Kanan: Progress Dots */}
+            <div className="w-full lg:w-1/5 bg-white p-5 rounded-xl border border-slate-200 shadow-sm sticky top-6">
+              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-4">Pertanyaan</p>
+              <ProgressDots total={total} current={currentStep} answered={answeredSet} onDotClick={handleDotClick} />
+            </div>
           </Motion.div>
         )}
       </AnimatePresence>
