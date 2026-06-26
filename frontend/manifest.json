@@ -1,7 +1,7 @@
 {
   "name": "Sistem Pakar",
-  "short_name": "SistemPakar",
-  "description": "Aplikasi Sistem Pakar berbasis web",
+  "short_name": "SiKar",
+  "description": "Aplikasi Sistem Pakar Nomophobia",
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "display": "standalone",

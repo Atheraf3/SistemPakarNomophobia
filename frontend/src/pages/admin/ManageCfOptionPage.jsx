@@ -149,10 +149,10 @@ export default function ManageCfOptionPage() {
       const pageHeight = doc.internal.pageSize.getHeight();
       let currentY = 15;
 
-      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo%20PT.png?updatedAt=1782357094871";
       try {
         const logoBase64 = await getBase64ImageFromURL(logoUrl);
-        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+        doc.addImage(logoBase64, 'PNG', 15, currentY - 10, 24, 24); 
       } catch (error) {
         console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
         doc.setFillColor(200, 200, 200); 
@@ -161,9 +161,14 @@ export default function ManageCfOptionPage() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 2, { align: "center" });
       
-      currentY += 15;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const splitAlamat = doc.splitTextToSize("Gedung Graha Mampang, Lantai 3 Suite 30, Jl. Mampang Prapatan Raya Kav.100, Jakarta Selatan, Indonesia", 100);
+      doc.text(splitAlamat, pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 18;
       
       doc.setLineWidth(0.5);
       doc.line(15, currentY, pageWidth - 15, currentY);
@@ -215,22 +220,23 @@ export default function ManageCfOptionPage() {
       }
 
       const today = new Date();
-      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
       const formattedDate = today.toLocaleDateString('id-ID', options);
 
       const signatureX = pageWidth - 70;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text(`Jakarta, ${formattedDate}`, signatureX, footerY);
-      doc.text("Pakar,", signatureX, footerY + 5);
+      doc.text("Jakarta,", signatureX, footerY);
+      doc.text(`${formattedDate}`, signatureX, footerY + 5);
+      doc.text("Pakar,", signatureX, footerY + 10);
       
-      doc.text("                                         ", signatureX, footerY + 30);
+      doc.text("                                         ", signatureX, footerY + 35);
       const textWidth = doc.getTextWidth("                                         ");
       doc.setLineWidth(0.3);
-      doc.line(signatureX, footerY + 31, signatureX + textWidth, footerY + 31);
+      doc.line(signatureX, footerY + 36, signatureX + textWidth, footerY + 36);
 
-      doc.save("Laporan_CF_Options.pdf");
+      doc.save("Laporan_Pilihan_Pengguna.pdf");
       toast.success("PDF berhasil dicetak!", { id: loadingToast });
 
     } catch (err) {
@@ -242,16 +248,16 @@ export default function ManageCfOptionPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola CF Options</h2>
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Pilihan Jawaban User (CF User)</h2>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
           <Button onClick={cetakPDFCfOption} variant="outline" className="w-full md:w-auto">Cetak PDF</Button>
-          <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">Tambah CF Option</Button>
+          <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">Tambah Pilihan Jawaban</Button>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Pilihan Jawaban (CF)</CardTitle>
+          <CardTitle>Daftar Pilihan Jawaban </CardTitle>
           <CardDescription>
             Pilihan yang akan ditampilkan saat pengguna mengisi kuesioner diagnosis beserta bobot nilainya.
           </CardDescription>

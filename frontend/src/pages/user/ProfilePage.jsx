@@ -228,10 +228,10 @@ export default function ProfilePage() {
       const pageHeight = doc.internal.pageSize.getHeight();
       let currentY = 15;
 
-      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo%20PT.png?updatedAt=1782357094871";
       try {
         const logoBase64 = await getBase64ImageFromURL(logoUrl);
-        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+        doc.addImage(logoBase64, 'PNG', 15, currentY - 10, 24, 24); 
       } catch (error) {
         console.error("Gagal memuat logo", error);
         doc.setFillColor(200, 200, 200); 
@@ -240,9 +240,14 @@ export default function ProfilePage() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 2, { align: "center" });
       
-      currentY += 15;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const splitAlamat = doc.splitTextToSize("Gedung Graha Mampang, Lantai 3 Suite 30, Jl. Mampang Prapatan Raya Kav.100, Jakarta Selatan, Indonesia", 100);
+      doc.text(splitAlamat, pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 18;
       
       doc.setLineWidth(0.5);
       doc.line(15, currentY, pageWidth - 15, currentY);
@@ -342,16 +347,17 @@ export default function ProfilePage() {
       }
 
       const signatureX = pageWidth - 70;
-      const tglCetak = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const tglCetak = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-      doc.text(`Jakarta, ${tglCetak}`, signatureX, currentY);
-      doc.text("Mengetahui,", signatureX, currentY + 5);
-      doc.text("Pakar / Konselor", signatureX, currentY + 10);
+      doc.text("Jakarta,", signatureX, currentY);
+      doc.text(`${tglCetak}`, signatureX, currentY + 5);
+      doc.text("Mengetahui,", signatureX, currentY + 10);
+      doc.text("Pakar / Konselor", signatureX, currentY + 15);
       
-      doc.text("                                         ", signatureX, currentY + 35);
+      doc.text("                                         ", signatureX, currentY + 40);
       const textWidth = doc.getTextWidth("                                         ");
       doc.setLineWidth(0.3);
-      doc.line(signatureX, currentY + 36, signatureX + textWidth, currentY + 36);
+      doc.line(signatureX, currentY + 41, signatureX + textWidth, currentY + 41);
 
       doc.save(`Riwayat_Diagnosis_${namaLengkap.replace(/\s+/g, '_')}_${tanggalTes.substring(0,10).replace(/\s+/g, '_')}.pdf`);
       toast.success("PDF berhasil dicetak!", { id: loadingToast });

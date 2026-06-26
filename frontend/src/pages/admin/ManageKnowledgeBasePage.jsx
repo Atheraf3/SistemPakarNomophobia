@@ -141,11 +141,11 @@ export default function ManageKnowledgeBasePage() {
       let currentY = 15;
 
       // HEADER
-      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo.png?updatedAt=1776489422811";
+      const logoUrl = "https://ik.imagekit.io/2xthk8ud4/TA/Logo%20PT.png?updatedAt=1782357094871";
       
       try {
         const logoBase64 = await getBase64ImageFromURL(logoUrl);
-        doc.addImage(logoBase64, 'PNG', 12, currentY - 3, 16, 16); 
+        doc.addImage(logoBase64, 'PNG', 15, currentY - 10, 24, 24); 
       } catch (error) {
         console.error("Gagal memuat logo dari URL, menggunakan lingkaran default:", error);
         doc.setFillColor(200, 200, 200); 
@@ -154,9 +154,14 @@ export default function ManageKnowledgeBasePage() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 7, { align: "center" });
+      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 2, { align: "center" });
       
-      currentY += 15;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const splitAlamat = doc.splitTextToSize("Gedung Graha Mampang, Lantai 3 Suite 30, Jl. Mampang Prapatan Raya Kav.100, Jakarta Selatan, Indonesia", 100);
+      doc.text(splitAlamat, pageWidth / 2, currentY + 7, { align: "center" });
+      
+      currentY += 18;
       
       doc.setLineWidth(0.5);
       doc.line(15, currentY, pageWidth - 15, currentY);
@@ -219,22 +224,23 @@ export default function ManageKnowledgeBasePage() {
       }
 
       const today = new Date();
-      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
       const formattedDate = today.toLocaleDateString('id-ID', options);
 
       const signatureX = pageWidth - 70;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text(`Jakarta, ${formattedDate}`, signatureX, footerY);
-      doc.text("Pakar,", signatureX, footerY + 5);
+      doc.text("Jakarta,", signatureX, footerY);
+      doc.text(`${formattedDate}`, signatureX, footerY + 5);
+      doc.text("Pakar,", signatureX, footerY + 10);
       
-      doc.text("                                         ", signatureX, footerY + 30);
+      doc.text("                                         ", signatureX, footerY + 35);
       const textWidth = doc.getTextWidth("                                         ");
       doc.setLineWidth(0.3);
-      doc.line(signatureX, footerY + 31, signatureX + textWidth, footerY + 31);
+      doc.line(signatureX, footerY + 36, signatureX + textWidth, footerY + 36);
 
-      doc.save("Laporan_Knowledge_Base_CF_Pakar.pdf");
+      doc.save("Laporan_Basis_Pengetahuan.pdf");
       toast.success("PDF berhasil dicetak!", { id: loadingToast });
 
     } catch (err) {
