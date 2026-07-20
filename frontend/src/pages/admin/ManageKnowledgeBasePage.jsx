@@ -227,18 +227,15 @@ export default function ManageKnowledgeBasePage() {
       const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
       const formattedDate = today.toLocaleDateString('id-ID', options);
 
-      const signatureX = pageWidth - 70;
+      const signatureCenterX = pageWidth - 45;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text("Jakarta,", signatureX, footerY);
-      doc.text(`${formattedDate}`, signatureX, footerY + 5);
-      doc.text("Pakar,", signatureX, footerY + 10);
+      doc.text(`Jakarta, ${formattedDate}`, signatureCenterX, footerY, { align: "center" });
+      doc.text("pakar,", signatureCenterX, footerY + 5, { align: "center" });
       
-      doc.text("                                         ", signatureX, footerY + 35);
-      const textWidth = doc.getTextWidth("                                         ");
       doc.setLineWidth(0.3);
-      doc.line(signatureX, footerY + 36, signatureX + textWidth, footerY + 36);
+      doc.line(signatureCenterX - 20, footerY + 30, signatureCenterX + 20, footerY + 30);
 
       doc.save("Laporan_Basis_Pengetahuan.pdf");
       toast.success("PDF berhasil dicetak!", { id: loadingToast });

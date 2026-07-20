@@ -353,18 +353,16 @@ function ResultScreen({ result, onReset, levels, user, answers, gejalaList, cfOp
         currentY = 20;
       }
 
-      const signatureX = pageWidth - 70;
+      const signatureCenterX = pageWidth - 45;
       const tglCetak = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-      doc.text("Jakarta,", signatureX, currentY);
-      doc.text(`${tglCetak}`, signatureX, currentY + 5);
-      doc.text("Mengetahui,", signatureX, currentY + 10);
-      doc.text("Pakar / Konselor", signatureX, currentY + 15);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Jakarta, ${tglCetak}`, signatureCenterX, currentY, { align: "center" });
+      doc.text("pakar,", signatureCenterX, currentY + 5, { align: "center" });
       
-      doc.text("                                         ", signatureX, currentY + 40);
-      const textWidth = doc.getTextWidth("                                         ");
       doc.setLineWidth(0.3);
-      doc.line(signatureX, currentY + 41, signatureX + textWidth, currentY + 41);
+      doc.line(signatureCenterX - 20, currentY + 30, signatureCenterX + 20, currentY + 30);
 
       doc.save(`Hasil_Diagnosis_${namaLengkap.replace(/\s+/g, '_')}.pdf`);
       toast.success("PDF berhasil dicetak!", { id: loadingToast });

@@ -262,19 +262,15 @@ export default function ManageGejalaPage() {
       const formattedDate = today.toLocaleDateString('id-ID', options);
 
       // Determine signature position
-      const signatureX = pageWidth - 70;
+      const signatureCenterX = pageWidth - 45;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text("Jakarta,", signatureX, footerY);
-      doc.text(`${formattedDate}`, signatureX, footerY + 5);
-      doc.text("Pakar,", signatureX, footerY + 10);
+      doc.text(`Jakarta, ${formattedDate}`, signatureCenterX, footerY, { align: "center" });
+      doc.text("pakar,", signatureCenterX, footerY + 5, { align: "center" });
       
-      doc.text("                                         ", signatureX, footerY + 35);
-      
-      const textWidth = doc.getTextWidth("                                         ");
       doc.setLineWidth(0.3);
-      doc.line(signatureX, footerY + 36, signatureX + textWidth, footerY + 36);
+      doc.line(signatureCenterX - 20, footerY + 30, signatureCenterX + 20, footerY + 30);
 
       // Save file
       doc.save("Laporan_Gejala_NMPQ.pdf");
