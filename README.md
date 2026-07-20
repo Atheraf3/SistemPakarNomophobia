@@ -112,10 +112,3 @@ npm run dev
 
 
 4. Buka tautan lokal yang tertera pada terminal (biasanya `http://localhost:5173`) di peramban Anda.
-
----
-
-
-4. Ikuti instruksi pendeploian hingga selesai, lalu lakukan rilis final menggunakan `vercel --prod`.
-
----
