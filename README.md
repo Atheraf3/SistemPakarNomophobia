@@ -9,7 +9,6 @@ Sistem Pakar Deteksi Dini Nomophobia (*No Mobile Phone Phobia*) adalah sebuah ap
 * **Manajemen Data (Panel Admin):** CRUD untuk Gejala, Basis Pengetahuan, Opsi CF, Solusi, Tingkat Keparahan, dan Manajemen Pengguna.
 * **Unduh Laporan PDF:** Hasil diagnosis dapat langsung diunduh dalam bentuk dokumen PDF.
 * **Dukungan PWA (Progressive Web App):** Aplikasi dapat dipasang (*install*) di perangkat seluler maupun desktop untuk pengalaman pengguna yang lebih cepat dan responsif.
-* **Keamanan Ketat:** Menggunakan `helmet` untuk proteksi *header*, pembatasan laju permintaan (`express-rate-limit`), enkripsi kata sandi dengan `bcryptjs`, dan autentikasi berbasis HTTP-only cookie JWT.
 
 ---
 
@@ -29,17 +28,17 @@ Perhitungan kalkulasi inferensi di dalam sistem ini mengikuti langkah-langkah be
 ### Backend
 
 * **Runtime:** Node.js
-* **Framework:** Express.js (v5)
+* **Framework:** Express.js 
 * **Database:** MongoDB & Mongoose
 * **Keamanan & Utilitas:** JWT, Bcryptjs, Helmet, Cookie-Parser, Express Rate Limit, Express Validator, Morgan
 
 ### Frontend
 
-* **Library & Build Tool:** React (v19) & Vite (v8)
+* **Library & Build Tool:** React & Vite
 * **State Management:** Zustand
-* **Routing:** React Router DOM (v7)
-* **Styling:** Tailwind CSS (v4), Framer Motion (Animasi), Shadcn UI, Lucide React
-* **Fitur Tambahan:** Axios, Html2pdf.js, React Hot Toast, Vite Plugin PWA
+* **Routing:** React Router DOM 
+* **Styling:** Tailwind CSS, Anime.js, Shadcn UI, Lucide React
+* **Fitur Tambahan:** Axios, React Hot Toast, Vite Plugin PWA
 
 ---
 
@@ -73,7 +72,7 @@ npm install
 
 3. Buat berkas `.env` (bisa menyalin dari `.env.example`) dan sesuaikan konfigurasinya:
 ```env
-PORT=5151
+PORT=
 MONGO_URI=
 JWT_SECRET=
 NODE_ENV=
@@ -115,33 +114,6 @@ npm run dev
 4. Buka tautan lokal yang tertera pada terminal (biasanya `http://localhost:5173`) di peramban Anda.
 
 ---
-
-## Cara Deployment
-
-Proyek ini telah dilengkapi dengan berkas konfigurasi `vercel.json` baik pada sisi backend maupun frontend sehingga sangat siap di-deploy menggunakan platform **Vercel**.
-
-### Deployment Backend ke Vercel
-
-1. Pastikan Anda telah memasang Vercel CLI (`npm i -g vercel`).
-2. Masuk ke direktori `backend` dan jalankan perintah:
-```bash
-vercel
-
-```
-
-
-3. Ikuti instruksi pada terminal untuk menghubungkan proyek.
-4. Jangan lupa menambahkan **Environment Variables** (`MONGO_URI`, `JWT_SECRET`, dll.) di dashboard Vercel Anda sebelum melakukan tahap *production deployment* (`vercel --prod`).
-
-### Deployment Frontend ke Vercel
-
-1. Masuk ke direktori `frontend`.
-2. Pastikan konfigurasi base URL API (Axios) Anda mengarah ke URL backend produksi Vercel yang telah dibuat sebelumnya.
-3. Jalankan perintah:
-```bash
-vercel
-
-```
 
 
 4. Ikuti instruksi pendeploian hingga selesai, lalu lakukan rilis final menggunakan `vercel --prod`.
