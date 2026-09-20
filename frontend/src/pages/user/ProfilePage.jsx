@@ -240,7 +240,7 @@ export default function ProfilePage() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 2, { align: "center" });
+      doc.text("PT Mili Anugrah Wijaya", pageWidth / 2, currentY + 2, { align: "center" });
       
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
@@ -352,7 +352,7 @@ export default function ProfilePage() {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text(`Jakarta, ${tglCetak}`, signatureCenterX, currentY, { align: "center" });
-      doc.text("pakar,", signatureCenterX, currentY + 5, { align: "center" });
+      doc.text("Pakar,", signatureCenterX, currentY + 5, { align: "center" });
       
       doc.setLineWidth(0.3);
       doc.line(signatureCenterX - 20, currentY + 30, signatureCenterX + 20, currentY + 30);

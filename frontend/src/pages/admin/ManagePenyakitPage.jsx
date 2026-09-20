@@ -170,7 +170,7 @@ export default function ManagePenyakitPage() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text("Sistem Pakar Deteksi Dini Nomophobia", pageWidth / 2, currentY + 2, { align: "center" });
+      doc.text("PT Mili Anugrah Wijaya", pageWidth / 2, currentY + 2, { align: "center" });
       
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
@@ -185,7 +185,7 @@ export default function ManagePenyakitPage() {
       currentY += 10;
 
       doc.setFontSize(12);
-      doc.text("Daftar Tingkat Keparahan Nomophobia", pageWidth / 2, currentY, { align: "center" });
+      doc.text("Laporan Tingkat Keparahan Nomophobia", pageWidth / 2, currentY, { align: "center" });
       
       currentY += 8;
 
@@ -237,7 +237,7 @@ export default function ManagePenyakitPage() {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text(`Jakarta, ${formattedDate}`, signatureCenterX, footerY, { align: "center" });
-      doc.text("pakar,", signatureCenterX, footerY + 5, { align: "center" });
+      doc.text("Pakar,", signatureCenterX, footerY + 5, { align: "center" });
       
       doc.setLineWidth(0.3);
       doc.line(signatureCenterX - 20, footerY + 30, signatureCenterX + 20, footerY + 30);
